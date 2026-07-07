@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Colonnes Coût / Marge sur la liste standard des commandes POS
+         Visibles uniquement pour les managers (donnée financière).
+         'margin' et 'margin_percent' sont des champs natifs Odoo
+         (point_of_sale/models/pos_order.py) — on les affiche simplement,
+         on ne les redéfinit pas.
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_pos_order_tree_margin" model="ir.ui.view">
+        <field name="name">pos.order.list.margin</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_order_tree"/>
+        <field name="arch" type="xml">
+            <field name="amount_total" position="after">
+                <field name="total_cost" string="Coût" optional="show" widget="monetary"
+                       groups="point_of_sale.group_pos_manager" sum="Coût total"/>
+                <field name="margin" string="Marge" optional="show" widget="monetary"
+                       groups="point_of_sale.group_pos_manager" sum="Marge totale"/>
+                <field name="margin_percent" string="Marge %" optional="show" widget="percentage"
+                       groups="point_of_sale.group_pos_manager"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

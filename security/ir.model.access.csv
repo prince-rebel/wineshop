@@ -1,0 +1,12 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_store_replenishment_wizard_user,store.replenishment.wizard user,model_store_replenishment_wizard,stock.group_stock_user,1,1,1,1
+access_store_replenishment_wizard_line_user,store.replenishment.wizard.line user,model_store_replenishment_wizard_line,stock.group_stock_user,1,1,1,1
+access_inter_store_availability_wizard_user,inter.store.availability.wizard user,model_inter_store_availability_wizard,stock.group_stock_user,1,1,1,1
+access_inter_store_availability_line_user,inter.store.availability.line user,model_inter_store_availability_line,stock.group_stock_user,1,1,1,1
+access_store_return_wizard_user,store.return.wizard user,model_store_return_wizard,stock.group_stock_user,1,1,1,1
+access_store_return_wizard_line_user,store.return.wizard.line user,model_store_return_wizard_line,stock.group_stock_user,1,1,1,1
+access_multi_store_replenishment_wizard_user,multi.store.replenishment.wizard user,model_multi_store_replenishment_wizard,stock.group_stock_user,1,1,1,1
+access_multi_store_replenishment_line_user,multi.store.replenishment.line user,model_multi_store_replenishment_line,stock.group_stock_user,1,1,1,1
+access_store_stock_report_user,store.stock.report user,model_store_stock_report,stock.group_stock_user,1,0,0,0
+access_store_stockout_forecast_user,store.stockout.forecast user,model_store_stockout_forecast,stock.group_stock_user,1,0,0,0
+access_pos_sale_margin_report_manager,pos.sale.margin.report manager,model_pos_sale_margin_report,stock.group_stock_manager,1,0,0,0

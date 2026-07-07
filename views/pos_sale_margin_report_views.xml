@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Rentabilité des ventes POS — réservé au propriétaire/managers
+    ══════════════════════════════════════════════════════════ -->
+
+    <!-- Vue pivot : marge par magasin x période -->
+    <record id="view_pos_sale_margin_report_pivot" model="ir.ui.view">
+        <field name="name">pos.sale.margin.report.pivot</field>
+        <field name="model">pos.sale.margin.report</field>
+        <field name="arch" type="xml">
+            <pivot string="Rentabilité des ventes" display_quantity="true">
+                <field name="warehouse_id" type="row"/>
+                <field name="date_order" type="col" interval="month"/>
+                <field name="revenue" type="measure" string="CA (HT)"/>
+                <field name="cost" type="measure" string="Coût"/>
+                <field name="margin" type="measure" string="Marge"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Vue graphique : évolution de la marge -->
+    <record id="view_pos_sale_margin_report_graph" model="ir.ui.view">
+        <field name="name">pos.sale.margin.report.graph</field>
+        <field name="model">pos.sale.margin.report</field>
+        <field name="arch" type="xml">
+            <graph string="Évolution de la marge" type="line">
+                <field name="date_order" type="row" interval="month"/>
+                <field name="margin" type="measure" string="Marge"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Vue liste : détail par ligne de vente -->
+    <record id="view_pos_sale_margin_report_list" model="ir.ui.view">
+        <field name="name">pos.sale.margin.report.list</field>
+        <field name="model">pos.sale.margin.report</field>
+        <field name="arch" type="xml">
+            <list string="Rentabilité des ventes" default_order="date_order desc"
+                  create="false" edit="false" delete="false">
+                <field name="date_order" string="Date"/>
+                <field name="warehouse_id" string="Magasin"/>
+                <field name="product_name" string="Produit"/>
+                <field name="product_categ_id" string="Catégorie" optional="hide"/>
+                <field name="qty" string="Qté vendue"/>
+                <field name="revenue" string="CA (HT)" sum="CA total"/>
+                <field name="cost" string="Coût" sum="Coût total"/>
+                <field name="margin" string="Marge" sum="Marge totale"/>
+                <field name="margin_pct" string="Marge %" avg="Marge % moy."/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vue recherche : filtres par période, magasin, produit -->
+    <record id="view_pos_sale_margin_report_search" model="ir.ui.view">
+        <field name="name">pos.sale.margin.report.search</field>
+        <field name="model">pos.sale.margin.report</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher">
+                <field name="product_id" string="Produit"/>
+                <field name="warehouse_id" string="Magasin"/>
+                <field name="product_categ_id" string="Catégorie"/>
+                <filter name="filter_date_order" date="date_order" string="Date de vente"/>
+                <separator/>
+                <filter name="group_warehouse" string="Par magasin"
+                        context="{'group_by': 'warehouse_id'}"/>
+                <filter name="group_product" string="Par produit"
+                        context="{'group_by': 'product_id'}"/>
+                <filter name="group_categ" string="Par catégorie"
+                        context="{'group_by': 'product_categ_id'}"/>
+                <filter name="group_month" string="Par mois"
+                        context="{'group_by': 'date_order:month'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action — réservée aux managers stock (données financières) -->
+    <record id="action_pos_sale_margin_report" model="ir.actions.act_window">
+        <field name="name">Rentabilité des ventes</field>
+        <field name="res_model">pos.sale.margin.report</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="context">{'search_default_filter_date_order': 1, 'search_default_group_warehouse': 1}</field>
+        <field name="views" eval="[
+            (ref('view_pos_sale_margin_report_pivot'), 'pivot'),
+            (ref('view_pos_sale_margin_report_graph'), 'graph'),
+            (ref('view_pos_sale_margin_report_list'), 'list'),
+        ]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune vente enregistrée
+            </p>
+        </field>
+    </record>
+
+</odoo>

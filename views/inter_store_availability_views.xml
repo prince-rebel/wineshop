@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Bouton "Disponibilité inter-magasins" sur la fiche produit -->
+    <record id="view_product_template_form_inter_store" model="ir.ui.view">
+        <field name="name">product.template.form.inter.store</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_inter_store_availability_from_template"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-store"
+                        invisible="type != 'consu'">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Stock magasins</span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
