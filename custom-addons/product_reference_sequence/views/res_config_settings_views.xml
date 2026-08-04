@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.product.reference.sequence</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='stock']" position="inside">
+                <block title="Référence produit" name="product_reference_setting_container">
+                    <setting id="product_reference_sequence" string="Référence produit automatique"
+                             help="Génère automatiquement la référence interne des nouveaux produits si elle n'est pas renseignée manuellement.">
+                        <div class="content-group">
+                            <div class="row mt8">
+                                <label for="product_reference_prefix" class="col-lg-3 o_light_label"/>
+                                <field name="product_reference_prefix" class="col-lg-3" placeholder="ex: Zino"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="product_reference_padding" class="col-lg-3 o_light_label"/>
+                                <field name="product_reference_padding" class="col-lg-3"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="product_reference_next_number" class="col-lg-3 o_light_label"/>
+                                <field name="product_reference_next_number" class="col-lg-3"/>
+                            </div>
+                            <div class="text-muted mt4">
+                                Utile si certains produits ont déjà une référence manuelle : indique ici le prochain
+                                numéro à utiliser pour continuer la suite sans repartir de zéro.
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
