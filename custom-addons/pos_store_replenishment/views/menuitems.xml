@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════
+         INVENTAIRE — Analyses centralisées (usage direction / central)
+    ══════════════════════════════════════════════════════════ -->
+    <menuitem
+        id="menu_store_replenishment_root"
+        name="Magasins POS"
+        parent="stock.menu_stock_root"
+        sequence="25"
+        groups="stock.group_stock_user"/>
+
+    <!-- F8 — Réappro groupé : géré depuis le central, multi-magasins -->
+    <menuitem
+        id="menu_multi_store_replenishment"
+        name="Réappro. groupé (tous les magasins)"
+        parent="menu_store_replenishment_root"
+        action="pos_store_replenishment.action_multi_store_replenishment_wizard"
+        sequence="10"
+        groups="stock.group_stock_user"/>
+
+    <!-- F6 — Stock global : tableau analytique direction -->
+    <menuitem
+        id="menu_store_stock_report"
+        name="Stock global — tous les magasins"
+        parent="menu_store_replenishment_root"
+        action="pos_store_replenishment.action_store_stock_report"
+        sequence="20"
+        groups="stock.group_stock_user"/>
+
+    <!-- Coûts & Marges : données financières, accès restreint managers -->
+    <menuitem
+        id="menu_store_stock_report_manager"
+        name="Coûts et marges par magasin"
+        parent="menu_store_replenishment_root"
+        action="pos_store_replenishment.action_store_stock_report_manager"
+        sequence="25"
+        groups="stock.group_stock_manager"/>
+
+    <!-- Rentabilité des ventes : bénéfices réels par période, accès propriétaire/managers -->
+    <menuitem
+        id="menu_pos_sale_margin_report"
+        name="Rentabilité des ventes"
+        parent="menu_store_replenishment_root"
+        action="pos_store_replenishment.action_pos_sale_margin_report"
+        sequence="27"
+        groups="stock.group_stock_manager"/>
+
+    <!-- ══════════════════════════════════════════════════════════
+         BACKEND POS — Gestion stocks magasins (responsable boutique)
+         Parent : Point de Vente > Opérations
+    ══════════════════════════════════════════════════════════ -->
+    <menuitem
+        id="menu_pos_stock_management_root"
+        name="Stocks Magasins"
+        parent="point_of_sale.menu_point_root"
+        sequence="30"
+        groups="point_of_sale.group_pos_manager"/>
+
+    <!-- F1 — Approvisionner un magasin -->
+    <menuitem
+        id="menu_store_replenishment_wizard"
+        name="Approvisionner un magasin"
+        parent="menu_pos_stock_management_root"
+        action="pos_store_replenishment.action_store_replenishment_wizard"
+        sequence="10"
+        groups="point_of_sale.group_pos_manager"/>
+
+    <!-- F5 — Retour stock au central -->
+    <menuitem
+        id="menu_store_return_wizard"
+        name="Retourner du stock au central"
+        parent="menu_pos_stock_management_root"
+        action="pos_store_replenishment.action_store_return_wizard"
+        sequence="20"
+        groups="point_of_sale.group_pos_manager"/>
+
+    <!-- F7 — Prévisions de rupture -->
+    <menuitem
+        id="menu_store_stockout_forecast"
+        name="Prévisions de rupture"
+        parent="menu_pos_stock_management_root"
+        action="pos_store_replenishment.action_store_stockout_forecast"
+        sequence="30"
+        groups="point_of_sale.group_pos_manager"/>
+
+    <!-- F3 — Disponibilité inter-magasins -->
+    <menuitem
+        id="menu_inter_store_availability"
+        name="Disponibilité inter-magasins"
+        parent="menu_pos_stock_management_root"
+        action="pos_store_replenishment.action_inter_store_availability_wizard"
+        sequence="35"
+        groups="point_of_sale.group_pos_manager"/>
+
+    <!-- F4 — Historique des approvisionnements : sous-menu par magasin
+         (accès direct en 1 clic, sans filtre à manipuler, pour des
+         utilisateurs peu familiers avec l'informatique) -->
+    <menuitem
+        id="menu_store_replenishment_dashboard"
+        name="Historique des approvisionnements"
+        parent="menu_pos_stock_management_root"
+        sequence="40"
+        groups="point_of_sale.group_pos_manager"/>
+
+    <menuitem
+        id="menu_store_replenishment_dashboard_all"
+        name="Tous les magasins"
+        parent="menu_store_replenishment_dashboard"
+        action="pos_store_replenishment.action_store_replenishment_dashboard"
+        sequence="10"
+        groups="point_of_sale.group_pos_manager"/>
+
+    <menuitem
+        id="menu_store_replenishment_dashboard_stock_principal"
+        name="STOCK PRINCIPAL"
+        parent="menu_store_replenishment_dashboard"
+        action="pos_store_replenishment.action_store_replenishment_dashboard_stock_principal"
+        sequence="20"
+        groups="point_of_sale.group_pos_manager"/>
+
+    <menuitem
+        id="menu_store_replenishment_dashboard_yop"
+        name="BCG YOP"
+        parent="menu_store_replenishment_dashboard"
+        action="pos_store_replenishment.action_store_replenishment_dashboard_yop"
+        sequence="30"
+        groups="point_of_sale.group_pos_manager"/>
+
+    <menuitem
+        id="menu_store_replenishment_dashboard_dokui"
+        name="BCG DOKUI"
+        parent="menu_store_replenishment_dashboard"
+        action="pos_store_replenishment.action_store_replenishment_dashboard_dokui"
+        sequence="40"
+        groups="point_of_sale.group_pos_manager"/>
+
+    <menuitem
+        id="menu_store_replenishment_dashboard_angre"
+        name="BCG ANGRE"
+        parent="menu_store_replenishment_dashboard"
+        action="pos_store_replenishment.action_store_replenishment_dashboard_angre"
+        sequence="50"
+        groups="point_of_sale.group_pos_manager"/>
+
+</odoo>

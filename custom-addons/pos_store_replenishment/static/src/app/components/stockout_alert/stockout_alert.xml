@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- ── Badge ruptures dans le header ProductScreen ── -->
+    <t t-name="point_of_sale.ProductScreen" t-inherit="point_of_sale.ProductScreen" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('product-screen')]" position="before">
+            <t t-if="criticalStockoutCount > 0">
+                <div class="pos-stockout-banner alert alert-danger d-flex align-items-center gap-2 py-2 px-3 mb-0"
+                     style="cursor:pointer; border-radius:0;"
+                     t-on-click="_showStockoutAlert">
+                    <i class="fa fa-exclamation-triangle fa-lg"/>
+                    <strong>
+                        <t t-esc="criticalStockoutCount"/> rupture(s) critique(s) dans votre magasin
+                    </strong>
+                    <span class="ms-auto small">Cliquer pour voir →</span>
+                </div>
+            </t>
+        </xpath>
+    </t>
+
+    <!-- ── Dialog : liste des ruptures ── -->
+    <t t-name="pos_store_replenishment.StockoutAlertDialog">
+        <Dialog title="'⚠ Ruptures de stock — Votre magasin'" size="'md'">
+            <t t-set-slot="default">
+                <div class="p-2">
+                    <!-- Critiques -->
+                    <t t-if="criticalAlerts.length > 0">
+                        <h6 class="text-danger fw-bold mb-2">
+                            <i class="fa fa-times-circle me-1"/>
+                            Ruptures effectives (<t t-esc="criticalAlerts.length"/>)
+                        </h6>
+                        <table class="table table-sm table-bordered mb-3">
+                            <thead class="table-danger">
+                                <tr>
+                                    <th>Produit</th>
+                                    <th class="text-center">Stock</th>
+                                    <th class="text-center">Jours restants</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="criticalAlerts" t-as="a" t-key="a.product_name">
+                                    <tr>
+                                        <td><t t-esc="a.product_name"/></td>
+                                        <td class="text-center fw-bold text-danger"><t t-esc="a.qty_on_hand"/></td>
+                                        <td class="text-center"><t t-esc="a.days_until_stockout !== null ? a.days_until_stockout : '—'"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+
+                    <!-- Attention -->
+                    <t t-if="warningAlerts.length > 0">
+                        <h6 class="text-warning fw-bold mb-2">
+                            <i class="fa fa-exclamation-triangle me-1"/>
+                            Stock faible — moins de 7 jours (<t t-esc="warningAlerts.length"/>)
+                        </h6>
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-warning">
+                                <tr>
+                                    <th>Produit</th>
+                                    <th class="text-center">Stock</th>
+                                    <th class="text-center">Jours restants</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="warningAlerts" t-as="a" t-key="a.product_name">
+                                    <tr>
+                                        <td><t t-esc="a.product_name"/></td>
+                                        <td class="text-center fw-bold"><t t-esc="a.qty_on_hand"/></td>
+                                        <td class="text-center text-warning fw-bold"><t t-esc="a.days_until_stockout"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+                </div>
+            </t>
+            <t t-set-slot="footer">
+                <button class="btn btn-secondary" t-on-click="props.close">Fermer</button>
+            </t>
+        </Dialog>
+    </t>
+
+</templates>

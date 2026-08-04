@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════
+         F1 — Wizard Approvisionnement simplifié
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_store_replenishment_wizard_form" model="ir.ui.view">
+        <field name="name">store.replenishment.wizard.form</field>
+        <field name="model">store.replenishment.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Approvisionner un magasin">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Approvisionner un magasin</h1>
+                        <p class="text-muted">
+                            Choisissez le magasin et les quantités à envoyer.
+                            Le transfert sera créé automatiquement.
+                        </p>
+                    </div>
+
+                    <group>
+                        <group string="Destination">
+                            <field name="dest_warehouse_id"
+                                   placeholder="Choisir un magasin..."
+                                   options="{'no_create': True}"/>
+                            <field name="scheduled_date"/>
+                            <!-- Entrepôt source : pré-rempli depuis la config du magasin,
+                                 mais modifiable si besoin d'approvisionner depuis ailleurs -->
+                            <field name="source_warehouse_ids" invisible="1"/>
+                            <field name="source_warehouse_id"
+                                   string="Expédié depuis"
+                                   options="{'no_create': True}"
+                                   domain="[('id', 'in', source_warehouse_ids)]"
+                                   invisible="not dest_warehouse_id"/>
+                        </group>
+                        <group string="Remarques">
+                            <field name="note" nolabel="1"
+                                   placeholder="Notes optionnelles pour ce transfert..."/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Produits à envoyer" name="products">
+                            <field name="line_ids" nolabel="1">
+                                <list editable="bottom" decoration-danger="alert">
+                                    <field name="product_id" required="1"
+                                           options="{'no_create': True}"/>
+                                    <field name="qty_available_src"
+                                           string="Stock central"
+                                           readonly="1"
+                                           optional="show"/>
+                                    <field name="qty_available_dst"
+                                           string="Stock magasin"
+                                           readonly="1"/>
+                                    <field name="qty_min" string="Min" readonly="1" optional="show"/>
+                                    <field name="qty_max" string="Max" readonly="1" optional="show"/>
+                                    <field name="qty_to_send" string="À envoyer"/>
+                                    <field name="product_uom_id" readonly="1" string="Unité"/>
+                                    <field name="alert" column_invisible="1"/>
+                                </list>
+                            </field>
+                            <div class="alert alert-info" role="alert"
+                                 invisible="not dest_warehouse_id">
+                                <i class="fa fa-info-circle"/> Les lignes en
+                                <strong>rouge</strong> indiquent un stock sous le seuil minimum.
+                                La quantité à envoyer est pré-calculée pour atteindre le seuil maximum.
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <footer>
+                    <button name="action_validate"
+                            string="Valider l'approvisionnement"
+                            type="object"
+                            class="btn-primary"
+                            invisible="not dest_warehouse_id"/>
+                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_store_replenishment_wizard" model="ir.actions.act_window">
+        <field name="name">Approvisionner un magasin</field>
+        <field name="res_model">store.replenishment.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_store_replenishment_wizard_form"/>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         F3 — Wizard Disponibilité inter-magasins
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_inter_store_availability_wizard_form" model="ir.ui.view">
+        <field name="name">inter.store.availability.wizard.form</field>
+        <field name="model">inter.store.availability.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Disponibilité dans les autres magasins">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Où trouver ce produit ?</h1>
+                    </div>
+
+                    <group>
+                        <field name="product_id"
+                               options="{'no_create': True}"
+                               placeholder="Rechercher un produit..."/>
+                        <field name="current_store_id"
+                               string="Magasin en rupture (optionnel)"
+                               options="{'no_create': True}"/>
+                    </group>
+
+                    <!-- Résultats -->
+                    <div invisible="not product_id">
+                        <separator string="Disponibilité par magasin"/>
+
+                        <div class="alert alert-success" role="alert"
+                             invisible="not has_availability">
+                            <i class="fa fa-check-circle"/>
+                            Ce produit est disponible dans d'autres magasins.
+                            Vous pouvez rediriger votre client.
+                        </div>
+                        <div class="alert alert-warning" role="alert"
+                             invisible="has_availability or not product_id">
+                            <i class="fa fa-exclamation-triangle"/>
+                            Ce produit n'est disponible dans aucun autre magasin en ce moment.
+                        </div>
+
+                        <field name="availability_line_ids" nolabel="1">
+                            <list decoration-success="has_stock"
+                                  decoration-muted="not has_stock">
+                                <field name="store_id" string="Magasin" readonly="1"/>
+                                <field name="qty_available" string="Quantité disponible" readonly="1"/>
+                                <field name="address" string="Adresse" readonly="1" optional="show"/>
+                                <field name="phone" string="Téléphone" readonly="1" optional="show"/>
+                                <field name="has_stock" column_invisible="1"/>
+                            </list>
+                        </field>
+                    </div>
+                </sheet>
+                <footer>
+                    <button string="Fermer" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_inter_store_availability_wizard" model="ir.actions.act_window">
+        <field name="name">Disponibilité inter-magasins</field>
+        <field name="res_model">inter.store.availability.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_inter_store_availability_wizard_form"/>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         F5 — Wizard Retour de stock (magasin → central)
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_store_return_wizard_form" model="ir.ui.view">
+        <field name="name">store.return.wizard.form</field>
+        <field name="model">store.return.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Retourner du stock vers le central">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Retour de stock vers l'entrepôt central</h1>
+                        <p class="text-muted">
+                            Sélectionnez le magasin et les quantités à renvoyer.
+                            Le stock sera déduit immédiatement.
+                        </p>
+                    </div>
+
+                    <group>
+                        <group string="Origine">
+                            <field name="src_warehouse_id"
+                                   placeholder="Choisir un magasin..."
+                                   options="{'no_create': True}"/>
+                            <field name="scheduled_date"/>
+                            <field name="dest_warehouse_id"
+                                   string="Destination (central)"
+                                   readonly="1"
+                                   invisible="not dest_warehouse_id"/>
+                        </group>
+                        <group string="Motif">
+                            <field name="note" nolabel="1"
+                                   placeholder="Ex : stock excédentaire, produit invendu, erreur de livraison..."/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Produits à retourner" name="products">
+                            <field name="line_ids" nolabel="1">
+                                <list editable="bottom">
+                                    <field name="product_id" required="1"
+                                           options="{'no_create': True}"/>
+                                    <field name="qty_available"
+                                           string="Stock magasin"
+                                           readonly="1"/>
+                                    <field name="qty_to_return" string="À retourner"/>
+                                    <field name="product_uom_id" readonly="1" string="Unité"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="action_validate"
+                            string="Valider le retour"
+                            type="object"
+                            class="btn-primary"
+                            invisible="not src_warehouse_id"
+                            confirm="Confirmer le retour de ces articles vers l'entrepôt central ?"/>
+                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_store_return_wizard" model="ir.actions.act_window">
+        <field name="name">Retourner du stock au central</field>
+        <field name="res_model">store.return.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_store_return_wizard_form"/>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════
+         F8 — Wizard Réapprovisionnement multi-magasins
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_multi_store_replenishment_wizard_form" model="ir.ui.view">
+        <field name="name">multi.store.replenishment.wizard.form</field>
+        <field name="model">multi.store.replenishment.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Réapprovisionnement groupé">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Réapprovisionnement groupé</h1>
+                        <p class="text-muted">
+                            Sélectionnez les magasins, chargez leurs besoins,
+                            ajustez les quantités si nécessaire et validez en un clic.
+                        </p>
+                    </div>
+
+                    <group>
+                        <group string="Étape 1 — Choisir les magasins">
+                            <field name="warehouse_ids"
+                                   widget="many2many_tags"
+                                   placeholder="Sélectionner un ou plusieurs magasins..."
+                                   options="{'no_create': True}"/>
+                            <field name="scheduled_date"/>
+                        </group>
+                        <group string="Résumé" invisible="not line_ids">
+                            <field name="total_stores" string="Magasins concernés" readonly="1"/>
+                            <field name="total_lines" string="Produits à envoyer" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <div class="alert alert-warning" role="alert"
+                         invisible="line_ids">
+                        <i class="fa fa-arrow-right me-1"/>
+                        Après avoir sélectionné vos magasins, cliquez sur
+                        <strong>"Charger les besoins"</strong> pour voir les ruptures détectées.
+                    </div>
+
+                    <field name="line_ids" nolabel="1" invisible="not line_ids">
+                        <list editable="bottom"
+                              decoration-danger="is_below_min and qty_on_hand == 0"
+                              decoration-warning="is_below_min and qty_on_hand > 0">
+                            <field name="dest_warehouse_id" string="Magasin" readonly="1"/>
+                            <field name="product_id" string="Produit" readonly="1"/>
+                            <field name="qty_on_hand" string="Stock magasin" readonly="1"/>
+                            <field name="qty_min" string="Seuil min" readonly="1" optional="show"/>
+                            <field name="qty_max" string="Seuil max" readonly="1" optional="show"/>
+                            <field name="qty_available_src" string="Stock central" readonly="1" optional="show"/>
+                            <field name="qty_to_send" string="À envoyer"/>
+                            <field name="product_uom_id" readonly="1" string="Unité"/>
+                            <field name="is_below_min" column_invisible="1"/>
+                        </list>
+                    </field>
+                </sheet>
+                <footer>
+                    <button name="action_load_needs"
+                            string="Charger les besoins"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="not warehouse_ids"/>
+                    <button name="action_validate_all"
+                            string="Valider l'approvisionnement"
+                            type="object"
+                            class="btn-primary"
+                            invisible="not line_ids"
+                            confirm="Confirmer l'envoi vers les magasins sélectionnés ?"/>
+                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_multi_store_replenishment_wizard" model="ir.actions.act_window">
+        <field name="name">Réapprovisionnement groupé</field>
+        <field name="res_model">multi.store.replenishment.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_multi_store_replenishment_wizard_form"/>
+    </record>
+
+</odoo>

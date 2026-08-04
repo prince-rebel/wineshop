@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Date de commande modifiable pour les Managers Ventes.
+         Le champ "Quotation Date" natif est masqué derrière le groupe
+         technique base.group_no_one (Mode développeur) tant que la
+         commande est en brouillon/envoyée. On l'ouvre aux managers
+         ventes pour permettre la saisie rétroactive de ventes
+         (ex : panne système empêchant l'enregistrement du jour même).
+
+         Pour les administrateurs uniquement : la date reste modifiable
+         même après confirmation (correction d'erreur a posteriori), alors
+         que les Sales Managers ne peuvent la changer qu'avant confirmation.
+    ══════════════════════════════════════════════════════════ -->
+    <record id="view_order_form_editable_date" model="ir.ui.view">
+        <field name="name">sale.order.form.editable.quotation.date</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date_order'][@groups='base.group_no_one']" position="attributes">
+                <attribute name="groups">sales_team.group_sale_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='date_order'][not(@groups)]" position="before">
+                <field name="can_edit_date_order_after_confirm" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='date_order'][not(@groups)]" position="attributes">
+                <attribute name="readonly">state in ['cancel', 'sale'] and not can_edit_date_order_after_confirm</attribute>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

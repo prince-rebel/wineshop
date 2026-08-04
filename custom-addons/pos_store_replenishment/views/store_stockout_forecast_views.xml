@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════
+         F7 — Prévisions de rupture par magasin
+    ══════════════════════════════════════════════════════════ -->
+
+    <record id="view_store_stockout_forecast_list" model="ir.ui.view">
+        <field name="name">store.stockout.forecast.list</field>
+        <field name="model">store.stockout.forecast</field>
+        <field name="arch" type="xml">
+            <list string="Prévisions de rupture"
+                  default_order="days_until_stockout asc"
+                  decoration-danger="urgency == 'critical'"
+                  decoration-warning="urgency == 'warning'"
+                  decoration-muted="urgency == 'no_sales'"
+                  create="false" edit="false" delete="false">
+                <field name="urgency" string="Urgence" widget="badge"
+                       decoration-danger="urgency == 'critical'"
+                       decoration-warning="urgency == 'warning'"
+                       decoration-success="urgency == 'ok'"
+                       decoration-info="urgency == 'no_sales'"/>
+                <field name="warehouse_name" string="Magasin"/>
+                <field name="product_name" string="Produit"/>
+                <field name="qty_on_hand" string="Stock actuel"/>
+                <field name="qty_sold_30d" string="Vendu (30j)" optional="show"/>
+                <field name="daily_sales_rate" string="Ventes/jour" optional="show"/>
+                <field name="days_until_stockout" string="Jours restants"/>
+                <field name="estimated_stockout_date" string="Rupture estimée"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_store_stockout_forecast_search" model="ir.ui.view">
+        <field name="name">store.stockout.forecast.search</field>
+        <field name="model">store.stockout.forecast</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher">
+                <field name="product_id" string="Produit"/>
+                <field name="warehouse_id" string="Magasin"/>
+
+                <filter name="filter_critical" string="Critique / Ruptures (stock ≤ 0 ou &lt; 3j)"
+                        domain="[('urgency', '=', 'critical')]"/>
+                <filter name="filter_warning" string="Attention (moins de 7 jours)"
+                        domain="[('urgency', 'in', ['critical', 'warning'])]"/>
+                <filter name="filter_has_sales" string="Avec ventes récentes"
+                        domain="[('urgency', '!=', 'no_sales')]"/>
+                <separator/>
+                <filter name="group_warehouse" string="Par magasin"
+                        context="{'group_by': 'warehouse_id'}"/>
+                <filter name="group_urgency" string="Par urgence"
+                        context="{'group_by': 'urgency'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_store_stockout_forecast" model="ir.actions.act_window">
+        <field name="name">Prévisions de rupture de stock</field>
+        <field name="res_model">store.stockout.forecast</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'search_default_filter_critical': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune prévision disponible
+            </p>
+            <p>
+                Les prévisions apparaissent après l'enregistrement de ventes POS.
+                Elles sont basées sur la vitesse de vente des 30 derniers jours.
+            </p>
+        </field>
+    </record>
+
+</odoo>

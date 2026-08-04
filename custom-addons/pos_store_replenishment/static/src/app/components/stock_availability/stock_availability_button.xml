@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- ── Bouton dans le popup "..." (ControlButtonsPopup) ── -->
+    <t t-name="pos_store_replenishment.ControlButtons"
+       t-inherit="point_of_sale.ControlButtons"
+       t-inherit-mode="extension">
+        <xpath
+            expr="//t[@t-if='props.showRemainingButtons']/div/button[last()]"
+            position="after">
+            <button t-att-class="buttonClass"
+                    t-on-click="() => this.openStockAvailability()">
+                <i class="fa fa-map-marker me-2" role="img"/>
+                Stock inter-magasins
+            </button>
+        </xpath>
+    </t>
+
+    <!-- ── Dialog Disponibilité ── -->
+    <t t-name="pos_store_replenishment.StockAvailabilityDialog">
+        <Dialog title="'Disponibilité inter-magasins'" size="'md'">
+            <t t-set-slot="default">
+                <div class="p-2">
+                    <!-- Recherche + sélection de produit -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Produit</label>
+                        <input type="text"
+                               class="form-control mb-2"
+                               placeholder="Rechercher par nom, référence ou code-barres..."
+                               t-model="state.searchQuery"/>
+                        <div class="list-group" style="max-height: 200px; overflow-y: auto;">
+                            <t t-if="filteredProducts.length === 0">
+                                <div class="text-muted text-center py-2">Aucun produit trouvé</div>
+                            </t>
+                            <t t-foreach="filteredProducts" t-as="product" t-key="product.id">
+                                <button type="button"
+                                        t-att-class="'list-group-item list-group-item-action' + (state.productId === product.id ? ' active' : '')"
+                                        t-on-click="() => this.selectProduct(product)">
+                                    <t t-esc="product.display_name"/>
+                                </button>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- Chargement -->
+                    <div t-if="state.loading" class="text-center py-3">
+                        <i class="fa fa-spinner fa-spin fa-2x text-primary"/>
+                        <p class="mt-2 text-muted">Chargement...</p>
+                    </div>
+
+                    <!-- Résultats -->
+                    <t t-elif="state.searched and state.lines.length > 0">
+                        <div class="alert alert-success py-2 mb-2">
+                            <i class="fa fa-check-circle me-1"/>
+                            Disponible dans <strong><t t-esc="state.lines.filter(l => l.qty_available > 0).length"/> magasin(s)</strong>
+                        </div>
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Magasin</th>
+                                    <th class="text-center">Qté disponible</th>
+                                    <th>Adresse</th>
+                                    <th>Téléphone</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.lines" t-as="line" t-key="line.store_name">
+                                    <tr t-att-class="line.qty_available > 0 ? 'table-success' : 'text-muted'">
+                                        <td>
+                                            <i t-att-class="line.qty_available > 0 ? 'fa fa-check text-success me-1' : 'fa fa-times text-danger me-1'"/>
+                                            <t t-esc="line.store_name"/>
+                                        </td>
+                                        <td class="text-center fw-bold">
+                                            <t t-esc="line.qty_available"/>
+                                        </td>
+                                        <td><t t-esc="line.address or '—'"/></td>
+                                        <td><t t-esc="line.phone or '—'"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+
+                    <t t-elif="state.searched and state.lines.length === 0">
+                        <div class="alert alert-warning py-2">
+                            <i class="fa fa-exclamation-triangle me-1"/>
+                            Aucun autre magasin ne dispose de ce produit en ce moment.
+                        </div>
+                    </t>
+
+                    <t t-elif="!state.loading and !state.searched">
+                        <div class="text-center py-4 text-muted">
+                            <i class="fa fa-search fa-2x mb-2"/>
+                            <p>Sélectionnez un produit pour voir sa disponibilité.</p>
+                        </div>
+                    </t>
+                </div>
+            </t>
+            <t t-set-slot="footer">
+                <button class="btn btn-secondary" t-on-click="props.close">Fermer</button>
+            </t>
+        </Dialog>
+    </t>
+
+</templates>

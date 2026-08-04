@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Ajout du paramètre "masquer produits en rupture" dans les réglages POS -->
+    <record id="view_pos_config_settings_inherit_stock_filter" model="ir.ui.view">
+        <field name="name">res.config.settings.pos.hide.stock</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <block id="product_and_category_block" position="inside">
+                <setting string="Masquer les produits indisponibles"
+                         help="N'affiche en caisse que les produits avec du stock disponible dans l'entrepôt du magasin.">
+                    <field name="pos_hide_out_of_stock_products"/>
+                </setting>
+            </block>
+        </field>
+    </record>
+
+</odoo>

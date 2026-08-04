@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════
+         F6 — Tableau de bord stock global (tous magasins)
+         Accès complet (avec coûts) : managers stock seulement
+    ══════════════════════════════════════════════════════════ -->
+
+    <!-- Vue liste -->
+    <record id="view_store_stock_report_list" model="ir.ui.view">
+        <field name="name">store.stock.report.list</field>
+        <field name="model">store.stock.report</field>
+        <field name="arch" type="xml">
+            <list string="Stock par magasin"
+                  default_order="product_name, warehouse_name"
+                  decoration-danger="is_below_min and is_pos_store"
+                  decoration-muted="qty_on_hand == 0"
+                  create="false" edit="false" delete="false">
+                <field name="product_name" string="Produit"/>
+                <field name="product_categ_id" string="Catégorie" optional="hide"/>
+                <field name="warehouse_name" string="Magasin"/>
+                <field name="is_pos_store" string="POS" optional="hide"/>
+                <field name="qty_on_hand" string="Stock disponible"/>
+                <field name="qty_min" string="Min" optional="show"/>
+                <field name="qty_max" string="Max" optional="show"/>
+                <field name="is_below_min" string="⚠ Rupture" optional="show"/>
+                <!-- Colonnes coût — managers uniquement -->
+                <field name="cost_price" string="Coût unitaire"
+                       optional="show" groups="stock.group_stock_manager"/>
+                <field name="sale_price" string="Prix de vente"
+                       optional="show" groups="stock.group_stock_manager"/>
+                <field name="stock_value" string="Valeur stock (coût total)"
+                       optional="show" groups="stock.group_stock_manager" sum="Coût total"/>
+                <field name="margin_value" string="Marge unitaire"
+                       optional="hide" groups="stock.group_stock_manager"/>
+                <field name="margin_pct" string="Marge %"
+                       optional="show" groups="stock.group_stock_manager"/>
+                <field name="sale_value" string="Vente potentielle"
+                       optional="show" groups="stock.group_stock_manager" sum="Vente potentielle totale"/>
+                <field name="margin_total" string="Marge totale attendue"
+                       optional="show" groups="stock.group_stock_manager" sum="Marge totale attendue"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vue pivot (avec valeur stock, marge et vente potentielle) -->
+    <record id="view_store_stock_report_pivot" model="ir.ui.view">
+        <field name="name">store.stock.report.pivot</field>
+        <field name="model">store.stock.report</field>
+        <field name="arch" type="xml">
+            <pivot string="Stock par magasin" display_quantity="true">
+                <field name="warehouse_name" type="row"/>
+                <field name="qty_on_hand" type="measure" string="Quantité"/>
+                <field name="stock_value" type="measure" string="Coût total"
+                       groups="stock.group_stock_manager"/>
+                <field name="sale_value" type="measure" string="Vente potentielle"
+                       groups="stock.group_stock_manager"/>
+                <field name="margin_total" type="measure" string="Marge totale attendue"
+                       groups="stock.group_stock_manager"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Vue graphique -->
+    <record id="view_store_stock_report_graph" model="ir.ui.view">
+        <field name="name">store.stock.report.graph</field>
+        <field name="model">store.stock.report</field>
+        <field name="arch" type="xml">
+            <graph string="Stock par magasin" type="bar" stacked="True">
+                <field name="warehouse_name" type="row" string="Magasin"/>
+                <field name="qty_on_hand" type="measure" string="Stock disponible"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Vue recherche -->
+    <record id="view_store_stock_report_search" model="ir.ui.view">
+        <field name="name">store.stock.report.search</field>
+        <field name="model">store.stock.report</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher">
+                <field name="product_id" string="Produit"/>
+                <field name="warehouse_id" string="Magasin"/>
+                <field name="product_categ_id" string="Catégorie"/>
+
+                <filter name="filter_pos_stores" string="Magasins POS uniquement"
+                        domain="[('is_pos_store', '=', True)]"/>
+                <filter name="filter_below_min" string="En rupture (sous seuil min)"
+                        domain="[('is_below_min', '=', True), ('is_pos_store', '=', True)]"/>
+                <filter name="filter_zero_stock" string="Stock zéro"
+                        domain="[('qty_on_hand', '=', 0)]"/>
+                <separator/>
+                <filter name="group_product" string="Par produit"
+                        context="{'group_by': 'product_id'}"/>
+                <filter name="group_warehouse" string="Par magasin"
+                        context="{'group_by': 'warehouse_id'}"/>
+                <filter name="group_categ" string="Par catégorie"
+                        context="{'group_by': 'product_categ_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action stock global — tout utilisateur stock -->
+    <record id="action_store_stock_report" model="ir.actions.act_window">
+        <field name="name">Stock global — tous les magasins</field>
+        <field name="res_model">store.stock.report</field>
+        <field name="view_mode">pivot,list,graph</field>
+        <field name="context">{'search_default_filter_pos_stores': 1}</field>
+        <field name="views" eval="[
+            (ref('view_store_stock_report_pivot'), 'pivot'),
+            (ref('view_store_stock_report_list'), 'list'),
+            (ref('view_store_stock_report_graph'), 'graph'),
+        ]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune donnée de stock trouvée
+            </p>
+        </field>
+    </record>
+
+    <!-- Action coûts & marges — managers uniquement -->
+    <record id="action_store_stock_report_manager" model="ir.actions.act_window">
+        <field name="name">Coûts &amp; Marges par magasin</field>
+        <field name="res_model">store.stock.report</field>
+        <field name="view_mode">list,pivot</field>
+        <field name="context">{'search_default_filter_pos_stores': 1}</field>
+        <field name="views" eval="[
+            (ref('view_store_stock_report_pivot'), 'pivot'),
+            (ref('view_store_stock_report_list'), 'list'),
+        ]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune donnée trouvée
+            </p>
+        </field>
+    </record>
+
+</odoo>

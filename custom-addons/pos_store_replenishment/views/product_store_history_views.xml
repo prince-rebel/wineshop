@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════
+         F9 — Historique produit par magasin (smart button fiche produit)
+    ══════════════════════════════════════════════════════════ -->
+
+    <record id="view_product_store_history_list" model="ir.ui.view">
+        <field name="name">product.store.history.list</field>
+        <field name="model">product.store.history</field>
+        <field name="arch" type="xml">
+            <list string="Historique par magasin"
+                  default_order="warehouse_name"
+                  decoration-danger="is_below_min and is_pos_store"
+                  decoration-muted="qty_on_hand == 0"
+                  create="false" edit="false" delete="false">
+                <field name="warehouse_name" string="Magasin"/>
+                <field name="is_pos_store" string="POS" optional="hide"/>
+                <field name="qty_on_hand" string="Stock actuel"/>
+                <field name="qty_min" string="Min" optional="show"/>
+                <field name="qty_max" string="Max" optional="show"/>
+                <field name="is_below_min" string="⚠ Rupture" optional="show"/>
+                <field name="qty_sold_total" string="Vendu (total)"/>
+                <field name="nb_sales" string="Nb ventes" optional="show"/>
+                <field name="last_sale_date" string="Dernière vente" optional="show"/>
+                <field name="qty_transferred_in" string="Reçu (transferts)" optional="show"/>
+                <field name="qty_transferred_out" string="Expédié/retourné" optional="show"/>
+                <field name="nb_transfers" string="Nb transferts"/>
+                <field name="last_transfer_date" string="Dernier transfert" optional="show"/>
+                <button name="action_view_transfers"
+                        string="Voir les transferts"
+                        type="object"
+                        class="btn-link btn-sm"
+                        invisible="nb_transfers == 0"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_product_store_history_search" model="ir.ui.view">
+        <field name="name">product.store.history.search</field>
+        <field name="model">product.store.history</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher">
+                <field name="product_id" string="Produit"/>
+                <field name="warehouse_id" string="Magasin"/>
+
+                <filter name="filter_pos_stores" string="Magasins POS uniquement"
+                        domain="[('is_pos_store', '=', True)]"/>
+                <filter name="filter_below_min" string="En rupture (sous seuil min)"
+                        domain="[('is_below_min', '=', True), ('is_pos_store', '=', True)]"/>
+                <separator/>
+                <filter name="group_warehouse" string="Par magasin"
+                        context="{'group_by': 'warehouse_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_product_store_history" model="ir.actions.act_window">
+        <field name="name">Historique magasins</field>
+        <field name="res_model">product.store.history</field>
+        <field name="view_mode">list</field>
+        <field name="views" eval="[(ref('view_product_store_history_list'), 'list')]"/>
+        <field name="search_view_id" ref="view_product_store_history_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune activité enregistrée pour ce produit dans les magasins
+            </p>
+        </field>
+    </record>
+
+</odoo>
