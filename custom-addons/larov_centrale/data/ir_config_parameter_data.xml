@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Valeurs par défaut issues des règles de gestion LAROV :
+         couverture visée 4 mois, justification au-delà de 6 mois,
+         vente mensuelle calculée sur 3 mois glissants, 6 bouteilles par carton. -->
+    <record id="param_coverage_months" model="ir.config_parameter">
+        <field name="key">larov_centrale.coverage_months</field>
+        <field name="value">4</field>
+    </record>
+    <record id="param_max_coverage_months" model="ir.config_parameter">
+        <field name="key">larov_centrale.max_coverage_months</field>
+        <field name="value">6</field>
+    </record>
+    <record id="param_sales_history_months" model="ir.config_parameter">
+        <field name="key">larov_centrale.sales_history_months</field>
+        <field name="value">3</field>
+    </record>
+    <record id="param_bottles_per_case" model="ir.config_parameter">
+        <field name="key">larov_centrale.bottles_per_case</field>
+        <field name="value">6</field>
+    </record>
+</odoo>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Régions de l'inventaire LAROV (synthèse par région) -->
+    <record id="region_bourgogne" model="larov.wine.region"><field name="name">Bourgogne</field><field name="code">BGN</field><field name="sequence">10</field></record>
+    <record id="region_champagne" model="larov.wine.region"><field name="name">Champagne</field><field name="code">CHP</field><field name="sequence">20</field></record>
+    <record id="region_bordeaux" model="larov.wine.region"><field name="name">Bordeaux</field><field name="code">BDX</field><field name="sequence">30</field></record>
+    <record id="region_rhone" model="larov.wine.region"><field name="name">Rhône</field><field name="code">RHO</field><field name="sequence">40</field></record>
+    <record id="region_loire" model="larov.wine.region"><field name="name">Loire</field><field name="code">LOI</field><field name="sequence">50</field></record>
+    <record id="region_sud_france" model="larov.wine.region"><field name="name">Sud France / Roussillon</field><field name="code">SUD</field><field name="sequence">60</field></record>
+    <record id="region_provence" model="larov.wine.region"><field name="name">Provence</field><field name="code">PRV</field><field name="sequence">65</field></record>
+    <record id="region_beaujolais" model="larov.wine.region"><field name="name">Beaujolais</field><field name="code">BJL</field><field name="sequence">70</field></record>
+    <record id="region_alsace" model="larov.wine.region"><field name="name">Alsace</field><field name="code">ALS</field><field name="sequence">80</field></record>
+    <record id="region_etranger" model="larov.wine.region"><field name="name">Étranger</field><field name="code">ETR</field><field name="sequence">90</field><field name="country_id" eval="False"/></record>
+    <record id="region_accessoires" model="larov.wine.region"><field name="name">Accessoires &amp; PLV</field><field name="code">ACC</field><field name="sequence">99</field><field name="country_id" eval="False"/></record>
+</odoo>

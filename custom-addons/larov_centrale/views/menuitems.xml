@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inventaire › Configuration › LAROV -->
+    <menuitem id="menu_larov_config_root"
+              name="LAROV"
+              parent="stock.menu_stock_config_settings"
+              sequence="90"
+              groups="stock.group_stock_manager"/>
+    <menuitem id="menu_larov_wine_region"
+              name="Régions viticoles"
+              parent="menu_larov_config_root"
+              action="action_larov_wine_region"
+              sequence="10"/>
+    <menuitem id="menu_larov_commercial_zone"
+              name="Secteurs commerciaux"
+              parent="menu_larov_config_root"
+              action="action_larov_commercial_zone"
+              sequence="20"/>
+
+    <!-- Inventaire › Analyse › LAROV -->
+    <menuitem id="menu_larov_reporting_root"
+              name="États LAROV"
+              parent="stock.menu_warehouse_report"
+              sequence="5"
+              groups="stock.group_stock_user"/>
+    <menuitem id="menu_larov_stock_report_wizard"
+              name="États de stock (assistant)"
+              parent="menu_larov_reporting_root"
+              action="action_larov_stock_report_wizard"
+              sequence="5"/>
+    <menuitem id="menu_larov_stock_valuation_report"
+              name="Inventaire en valeur"
+              parent="menu_larov_reporting_root"
+              action="action_larov_stock_valuation_report"
+              sequence="10"/>
+    <menuitem id="menu_larov_commercial_sheet"
+              name="Fiche commerciale"
+              parent="menu_larov_reporting_root"
+              action="action_larov_commercial_sheet"
+              sequence="20"/>
+    <menuitem id="menu_larov_replenishment_report"
+              name="Rapport de réapprovisionnement"
+              parent="menu_larov_reporting_root"
+              action="action_larov_replenishment_report"
+              sequence="30"/>
+
+    <!-- Ventes › Configuration › Secteurs commerciaux -->
+    <menuitem id="menu_larov_commercial_zone_sale"
+              name="Secteurs commerciaux"
+              parent="sale.menu_sale_config"
+              action="action_larov_commercial_zone"
+              sequence="30"
+              groups="sales_team.group_sale_manager"/>
+</odoo>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Secteurs commerciaux de départ (Abidjan et littoral) — à compléter au cadrage -->
+    <record id="zone_marcory" model="larov.commercial.zone"><field name="name">Marcory / Zone 4</field><field name="sequence">10</field></record>
+    <record id="zone_cocody" model="larov.commercial.zone"><field name="name">Cocody / Riviera</field><field name="sequence">20</field></record>
+    <record id="zone_plateau" model="larov.commercial.zone"><field name="name">Plateau</field><field name="sequence">30</field></record>
+    <record id="zone_bietry" model="larov.commercial.zone"><field name="name">Biétry / Treichville</field><field name="sequence">40</field></record>
+    <record id="zone_yopougon" model="larov.commercial.zone"><field name="name">Yopougon / Abobo</field><field name="sequence">50</field></record>
+    <record id="zone_assinie" model="larov.commercial.zone"><field name="name">Assinie / Grand-Bassam</field><field name="sequence">60</field></record>
+    <record id="zone_interieur" model="larov.commercial.zone"><field name="name">Intérieur du pays</field><field name="sequence">70</field></record>
+</odoo>

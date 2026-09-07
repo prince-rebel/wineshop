@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_larov" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.larov.centrale</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Bandeau rupture : reprend le message du bon de commande client -->
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-warning mb-0" role="alert"
+                     invisible="all_lines_available or state in ('cancel',)">
+                    <i class="fa fa-exclamation-triangle me-1"/>
+                    Certaines références sont en rupture dans l'entrepôt de la commande :
+                    prévenir le client et proposer une substitution.
+                </div>
+            </xpath>
+
+            <xpath expr="//field[@name='payment_term_id']" position="after">
+                <field name="reception_channel"/>
+                <field name="customer_segment"/>
+                <field name="commercial_zone_id"/>
+                <field name="proforma_validity_days" invisible="state not in ('draft', 'sent')"/>
+            </xpath>
+
+            <!-- Lignes : stock dispo et disponibilité -->
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_uom_qty']" position="after">
+                <field name="qty_available_wh" optional="show"/>
+                <field name="availability_label" optional="show" string="Dispo ?"
+                       decoration-success="is_available" decoration-danger="not is_available"/>
+                <field name="is_available" column_invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_template_id']" position="after">
+                <field name="wine_region_id" optional="hide"/>
+                <field name="vintage_display" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_quotation_tree_larov" model="ir.ui.view">
+        <field name="name">sale.order.list.inherit.larov.centrale</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_quotation_tree_with_onboarding"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="after">
+                <field name="customer_segment" optional="show"/>
+                <field name="commercial_zone_id" optional="hide"/>
+                <field name="reception_channel" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sales_order_filter_larov" model="ir.ui.view">
+        <field name="name">sale.order.search.inherit.larov.centrale</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_sales_order_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <field name="commercial_zone_id"/>
+                <group>
+                    <filter string="Type de client" name="groupby_segment" context="{'group_by': 'customer_segment'}"/>
+                    <filter string="Secteur commercial" name="groupby_zone" context="{'group_by': 'commercial_zone_id'}"/>
+                    <filter string="Canal de réception" name="groupby_channel" context="{'group_by': 'reception_channel'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

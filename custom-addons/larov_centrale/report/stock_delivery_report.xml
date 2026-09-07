@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════════════════
+         BON DE LIVRAISON — format LAROV
+         Source : LAROV_Template_Bon_Livraison.xlsx
+    ══════════════════════════════════════════════════════════════════ -->
+    <template id="report_stock_delivery_larov_document">
+        <t t-call="web.external_layout">
+            <t t-set="so" t-value="doc.sale_id"/>
+            <t t-set="cur" t-value="so and so.currency_id or doc.company_id.currency_id"/>
+            <t t-set="moves" t-value="doc.move_ids.filtered(lambda m: m.state != 'cancel')"/>
+            <t t-set="ship" t-value="doc.partner_id"/>
+            <div class="page larov-doc">
+                <t t-call="larov_centrale.larov_doc_header">
+                    <t t-set="title">BON DE LIVRAISON</t>
+                    <t t-set="subtitle" t-value="doc.state != 'done' and 'PRÉPARATION — livraison non validée' or ''"/>
+                </t>
+
+                <table style="width:100%; border-collapse:collapse;">
+                    <tr>
+                        <td style="width:50%; vertical-align:top; padding-right:8px;">
+                            <t t-call="larov_centrale.larov_info_block">
+                                <t t-set="block_title">DESTINATAIRE</t>
+                                <t t-set="rows" t-value="[
+                                    ('Client', ship.commercial_partner_id.name),
+                                    ('Adresse de livraison', ', '.join([v for v in [ship.street, ship.street2, ship.city] if v])),
+                                    ('Contact sur place', doc.site_contact or ' &#183; '.join([v for v in [ship.name if ship != ship.commercial_partner_id else '', ship.phone or ship.mobile] if v])),
+                                    ('Dépôt expéditeur', doc.location_id.warehouse_id.name or doc.location_id.display_name),
+                                ]"/>
+                            </t>
+                        </td>
+                        <td style="width:50%; vertical-align:top; padding-left:8px;">
+                            <t t-call="larov_centrale.larov_info_block">
+                                <t t-set="block_title">DOCUMENT</t>
+                                <t t-set="rows" t-value="[
+                                    ('N° bon de livraison', doc.name),
+                                    ('Date de livraison', (doc.date_done or doc.scheduled_date) and (doc.date_done or doc.scheduled_date).strftime('%d/%m/%Y')),
+                                    ('Réf. commande', so and so.name or doc.origin),
+                                    ('Livreur', doc.driver_name),
+                                ]"/>
+                            </t>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="larov-lines">
+                    <thead>
+                        <tr>
+                            <th>Réf.</th>
+                            <th>Désignation</th>
+                            <th>Région</th>
+                            <th>Couleur</th>
+                            <th class="ctr">Mill.</th>
+                            <th class="num">Qté commandée</th>
+                            <th class="num">Qté livrée</th>
+                            <th class="num">Écart</th>
+                            <th class="num">P.U. TTC</th>
+                            <th class="num">Montant TTC</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-set="total_amount" t-value="0.0"/>
+                        <t t-foreach="moves" t-as="move">
+                            <t t-set="pu" t-value="move.sale_price_unit_ttc or 0.0"/>
+                            <t t-set="disc" t-value="move.sale_line_id.discount or 0.0"/>
+                            <t t-set="amount" t-value="move.quantity * pu * (1 - disc / 100.0)"/>
+                            <t t-set="total_amount" t-value="total_amount + amount"/>
+                            <tr t-att-class="move.qty_gap and 'larov-neg' or ''">
+                                <td><t t-esc="move.product_id.default_code or ''"/></td>
+                                <td><t t-esc="move.product_id.product_tmpl_id._get_larov_appellation()"/></td>
+                                <td><t t-esc="move.wine_region_id.name or ''"/></td>
+                                <td><t t-esc="move.product_id.wine_color_display"/></td>
+                                <td class="ctr"><t t-esc="move.vintage_display"/></td>
+                                <td class="num"><t t-esc="'{:,.0f}'.format(move.product_uom_qty).replace(',', ' ')"/></td>
+                                <td class="num"><t t-esc="'{:,.0f}'.format(move.quantity).replace(',', ' ')"/></td>
+                                <td class="num"><t t-esc="move.qty_gap and '{:+,.0f}'.format(move.qty_gap) or ''"/></td>
+                                <td class="num"><t t-esc="pu" t-options='{"widget": "monetary", "display_currency": cur}'/></td>
+                                <td class="num"><t t-esc="amount" t-options='{"widget": "monetary", "display_currency": cur}'/></td>
+                            </tr>
+                        </t>
+                        <tr class="larov-total">
+                            <td colspan="5" class="num">TOTAL</td>
+                            <td class="num"><t t-esc="'{:,.0f}'.format(sum(moves.mapped('product_uom_qty'))).replace(',', ' ')"/></td>
+                            <td class="num"><t t-esc="'{:,.0f}'.format(sum(moves.mapped('quantity'))).replace(',', ' ')"/></td>
+                            <td class="num"><t t-esc="'{:+,.0f}'.format(doc.total_gap_qty)"/></td>
+                            <td></td>
+                            <td class="num"><t t-esc="total_amount" t-options='{"widget": "monetary", "display_currency": cur}'/></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div t-if="not doc.total_gap_qty" class="larov-note-ok">Livraison conforme à la commande.</div>
+                <div t-else="" class="larov-note-warn">
+                    ⚠ ÉCART CONSTATÉ : <t t-esc="'{:+,.0f}'.format(doc.total_gap_qty)"/> bouteille(s) — à justifier avant signature.
+                </div>
+
+                <t t-call="larov_centrale.larov_signatures">
+                    <t t-set="signatures" t-value="[
+                        ('FOURNISSEUR — ' + doc.company_id.name, doc.prepared_by_name, 'Cachet et signature :'),
+                        ('LIVREUR', doc.driver_name),
+                        ('CLIENT — reçu le ....../....../......', '', 'Cachet et signature :'),
+                    ]"/>
+                </t>
+
+                <div class="larov-footnote">
+                    Toute réserve doit être portée sur ce bon au moment de la réception.
+                    Passé ce délai, la livraison est réputée conforme.
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_stock_delivery_larov">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="larov_centrale.report_stock_delivery_larov_document"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_stock_delivery_larov" model="ir.actions.report">
+        <field name="name">Bon de livraison (LAROV)</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">larov_centrale.report_stock_delivery_larov</field>
+        <field name="report_file">larov_centrale.report_stock_delivery_larov</field>
+        <field name="print_report_name">'BL-%s' % (object.name or '').replace('/', '-')</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="base.paperformat_euro"/>
+    </record>
+</odoo>

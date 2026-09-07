@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_picking_form_larov" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.larov.centrale</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Onglet LAROV : réception d'arrivage / livraison / mouvement -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Arrivage" name="larov_reception" invisible="picking_type_code != 'incoming'">
+                    <group>
+                        <group string="Acheminement">
+                            <field name="forwarder_id" options="{'no_create_edit': True}"/>
+                            <field name="transport_mode"/>
+                            <field name="container_ref"/>
+                            <field name="supplier_invoice_ref"/>
+                            <field name="cargo_condition"/>
+                        </group>
+                        <group string="Contrôle">
+                            <field name="total_damaged_qty"/>
+                            <field name="damage_rate" widget="percentage"/>
+                            <field name="total_gap_qty"/>
+                            <field name="received_value_supplier_currency"/>
+                            <field name="prepared_by_name" string="Réceptionné par (magasinier)"/>
+                            <field name="checked_by_name" string="Contrôlé par (resp. stocks)"/>
+                        </group>
+                    </group>
+                    <group string="Réserves et observations">
+                        <field name="reception_remarks" nolabel="1"
+                               placeholder="Casse ou manquant : photographier et signaler au transitaire sous 48 h."/>
+                    </group>
+                </page>
+                <page string="Livraison" name="larov_delivery" invisible="picking_type_code != 'outgoing'">
+                    <group>
+                        <group>
+                            <field name="driver_name"/>
+                            <field name="site_contact"/>
+                        </group>
+                        <group>
+                            <field name="total_gap_qty" string="Écart (livré − commandé)"/>
+                            <field name="prepared_by_name" string="Préparé par"/>
+                        </group>
+                    </group>
+                </page>
+                <page string="Mouvement" name="larov_internal" invisible="picking_type_code != 'internal'">
+                    <group>
+                        <group>
+                            <field name="move_nature" widget="radio"/>
+                        </group>
+                        <group>
+                            <field name="prepared_by_name" string="Remis par (dépôt d'origine)"/>
+                            <field name="checked_by_name" string="Visa responsable des stocks"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+
+            <!-- Lignes : casse / manquant et écart -->
+            <xpath expr="//field[@name='move_ids']/list/field[@name='quantity']" position="after">
+                <field name="qty_damaged" optional="show"
+                       column_invisible="parent.picking_type_code != 'incoming'"
+                       readonly="parent.state in ('done', 'cancel')"/>
+                <field name="qty_gap" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="vpicktree_larov" model="ir.ui.view">
+        <field name="name">stock.picking.list.inherit.larov.centrale</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree"/>
+        <field name="arch" type="xml">
+            <field name="origin" position="after">
+                <field name="forwarder_id" optional="hide"/>
+                <field name="move_nature" optional="hide"/>
+            </field>
+        </field>
+    </record>
+</odoo>

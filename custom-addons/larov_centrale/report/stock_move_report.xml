@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Ticket 80 mm pour l'imprimante de caisse -->
+    <record id="paperformat_larov_ticket" model="report.paperformat">
+        <field name="name">LAROV ticket 80 mm</field>
+        <field name="default" eval="False"/>
+        <field name="format">custom</field>
+        <field name="page_height">297</field>
+        <field name="page_width">80</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">3</field>
+        <field name="margin_bottom">3</field>
+        <field name="margin_left">3</field>
+        <field name="margin_right">3</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">80</field>
+    </record>
+
+    <!-- Cases à cocher « Nature » -->
+    <template id="larov_move_nature_line">
+        <t t-set="natures" t-value="[('transfer', 'Transfert entre dépôts'), ('exit', 'Sortie'), ('entry', 'Entrée (arrivage)'), ('return', 'Retour'), ('breakage', 'Casse / perte')]"/>
+        <span style="font-weight:700;">NATURE :</span>
+        <t t-foreach="natures" t-as="n">
+            &#160;&#160;<t t-esc="n[0] == doc.move_nature and '&#9746;' or '&#9744;'"/> <t t-esc="n[1]"/>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         BON DE MOUVEMENT DE STOCK — A4
+         Source : LAROV_Templates_Mouvement_Stock.xlsx (onglet BON)
+    ══════════════════════════════════════════════════════════════════ -->
+    <template id="report_stock_move_larov_document">
+        <t t-call="web.external_layout">
+            <t t-set="lines" t-value="doc._larov_transfer_lines()"/>
+            <t t-set="src" t-value="doc.location_id.warehouse_id.name or doc.location_id.display_name"/>
+            <t t-set="dst" t-value="doc.location_dest_id.warehouse_id.name or doc.location_dest_id.display_name"/>
+            <div class="page larov-doc">
+                <t t-call="larov_centrale.larov_doc_header">
+                    <t t-set="title">BON DE MOUVEMENT DE STOCK</t>
+                    <t t-set="subtitle">Document interne — sans valeur commerciale</t>
+                </t>
+                <table class="larov-tracking">
+                    <tr>
+                        <td><div class="larov-track-label">N° de mouvement</div><div class="larov-track-value"><t t-esc="doc.name"/></div></td>
+                        <td><div class="larov-track-label">Date</div><div class="larov-track-value"><t t-esc="(doc.date_done or doc.scheduled_date).strftime('%d/%m/%Y %H:%M')"/></div></td>
+                        <td><div class="larov-track-label">Dépôt d'origine</div><div class="larov-track-value"><t t-esc="src"/></div></td>
+                        <td><div class="larov-track-label">Dépôt de destination</div><div class="larov-track-value"><t t-esc="dst"/></div></td>
+                    </tr>
+                </table>
+                <div style="margin: 8px 0;"><t t-call="larov_centrale.larov_move_nature_line"/></div>
+
+                <table class="larov-lines">
+                    <thead>
+                        <tr>
+                            <th>Référence</th>
+                            <th>Désignation</th>
+                            <th class="num">Qté</th>
+                            <th class="num">Qté reçue</th>
+                            <th>Observation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="lines" t-as="l">
+                            <tr t-att-class="l['qty'] &lt; 0 and 'larov-neg' or ''">
+                                <td><t t-esc="l['move'].product_id.default_code or ''"/></td>
+                                <td><t t-esc="l['move'].product_id.product_tmpl_id._get_larov_appellation()"/><t t-if="l['move'].estate"> — <t t-esc="l['move'].estate"/></t><t t-if="l['move'].vintage_display"> <t t-esc="l['move'].vintage_display"/></t></td>
+                                <td class="num"><t t-esc="'{:+,.0f}'.format(l['qty']).replace(',', ' ')"/></td>
+                                <td class="num"><t t-esc="l['qty'] > 0 and l['received'] and '{:,.0f}'.format(l['received']) or ''"/></td>
+                                <td><t t-esc="l['label']"/></td>
+                            </tr>
+                        </t>
+                        <tr class="larov-total">
+                            <td colspan="2">TOTAL — <t t-esc="len(lines) // 2"/> référence(s)</td>
+                            <td class="num"><t t-esc="'{:,.0f}'.format(sum(l['qty'] for l in lines if l['qty'] > 0)).replace(',', ' ')"/></td>
+                            <td class="num"><t t-esc="'{:,.0f}'.format(sum(l['received'] for l in lines if l['qty'] > 0)).replace(',', ' ')"/></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <t t-call="larov_centrale.larov_signatures">
+                    <t t-set="signatures" t-value="[
+                        ('REMIS PAR  (dépôt d\'origine)', doc.prepared_by_name),
+                        ('REÇU PAR  (dépôt de destination)', ''),
+                        ('VISA  Responsable des stocks', doc.checked_by_name),
+                    ]"/>
+                </t>
+                <div class="larov-footnote">
+                    RÈGLE — chaque référence apparaît deux fois : en négatif (sortie du dépôt d'origine) et en positif
+                    (entrée au dépôt de destination). La colonne « Qté reçue » est remplie par le destinataire au moment
+                    de la réception ; tout écart est signalé le jour même.
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_stock_move_larov">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="larov_centrale.report_stock_move_larov_document"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_stock_move_larov" model="ir.actions.report">
+        <field name="name">Bon de mouvement de stock (LAROV)</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">larov_centrale.report_stock_move_larov</field>
+        <field name="report_file">larov_centrale.report_stock_move_larov</field>
+        <field name="print_report_name">'MT-%s' % (object.name or '').replace('/', '-')</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="base.paperformat_euro"/>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         BON DE MOUVEMENT DE STOCK — TICKET 80 mm
+         Source : LAROV_Templates_Mouvement_Stock.xlsx (onglet TICKET)
+    ══════════════════════════════════════════════════════════════════ -->
+    <template id="report_stock_move_ticket_larov">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.basic_layout">
+                    <t t-set="lines" t-value="doc._larov_transfer_lines()"/>
+                    <t t-set="company" t-value="doc.company_id"/>
+                    <div class="page" style="font-family: 'DejaVu Sans Mono', monospace; font-size: 9px; width: 72mm;">
+                        <div style="text-align:center; font-weight:700; font-size: 11px;">LA ROUTE DES VINS</div>
+                        <div style="text-align:center;"><t t-esc="company.street or ''"/></div>
+                        <div style="text-align:center;"><t t-esc="' &#183; '.join([v for v in [company.street2, company.phone] if v])"/></div>
+                        <div style="text-align:center; margin-top:6px; font-weight:700;">BON DE MOUVEMENT DE STOCK</div>
+                        <div style="text-align:center;">(interne — sans valeur marchande)</div>
+                        <div>- - - - - - - - - - - - - - - - - - - - - - -</div>
+                        <div>N° mouvement : <b><t t-esc="doc.name"/></b></div>
+                        <div>Date : <t t-esc="(doc.date_done or doc.scheduled_date).strftime('%d/%m/%Y')"/>   Heure : <t t-esc="(doc.date_done or doc.scheduled_date).strftime('%H:%M')"/></div>
+                        <div>Origine     : <t t-esc="doc.location_id.warehouse_id.name or doc.location_id.display_name"/></div>
+                        <div>Destination : <t t-esc="doc.location_dest_id.warehouse_id.name or doc.location_dest_id.display_name"/></div>
+                        <div>Nature : [<t t-esc="doc.move_nature == 'transfer' and 'X' or ' '"/>] Transfert  [<t t-esc="doc.move_nature == 'exit' and 'X' or ' '"/>] Sortie</div>
+                        <div>         [<t t-esc="doc.move_nature == 'entry' and 'X' or ' '"/>] Entrée     [<t t-esc="doc.move_nature == 'return' and 'X' or ' '"/>] Retour</div>
+                        <div>- - - - - - - - - - - - - - - - - - - - - - -</div>
+                        <table style="width:100%; border-collapse:collapse; font-size: 9px;">
+                            <thead><tr><th style="text-align:left;">RÉF</th><th style="text-align:left;">DÉSIGNATION</th><th style="text-align:right;">QTÉ</th></tr></thead>
+                            <tbody>
+                                <t t-foreach="lines" t-as="l">
+                                    <tr>
+                                        <td style="vertical-align:top;"><t t-esc="l['move'].product_id.default_code or ''"/></td>
+                                        <td><t t-esc="l['move'].product_id.product_tmpl_id._get_larov_appellation()[:22]"/></td>
+                                        <td style="text-align:right;"><t t-esc="'{:+,.0f}'.format(l['qty'])"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <div>- - - - - - - - - - - - - - - - - - - - - - -</div>
+                        <div>TOTAL RÉFÉRENCES : <b><t t-esc="len(lines) // 2"/></b></div>
+                        <div>TOTAL BOUTEILLES : <b><t t-esc="'{:,.0f}'.format(sum(l['qty'] for l in lines if l['qty'] > 0))"/></b></div>
+                        <div style="margin-top:8px;">- - - - - - - - - - - - - - - - - - - - - - -</div>
+                        <div style="font-weight:700;">REMIS PAR</div>
+                        <div>Nom : <t t-esc="doc.prepared_by_name or ''"/></div>
+                        <div style="margin-bottom:14px;">Signature :</div>
+                        <div style="font-weight:700;">REÇU PAR</div>
+                        <div>Nom :</div>
+                        <div style="margin-bottom:14px;">Signature :</div>
+                        <div>- - - - - - - - - - - - - - - - - - - - - - -</div>
+                        <div style="text-align:center;">Signature obligatoire des deux côtés.</div>
+                        <div style="text-align:center;">Exemplaire origine + destination.</div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_stock_move_ticket_larov" model="ir.actions.report">
+        <field name="name">Bon de mouvement — ticket 80 mm (LAROV)</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">larov_centrale.report_stock_move_ticket_larov</field>
+        <field name="report_file">larov_centrale.report_stock_move_ticket_larov</field>
+        <field name="print_report_name">'MT-ticket-%s' % (object.name or '').replace('/', '-')</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_larov_ticket"/>
+    </record>
+</odoo>

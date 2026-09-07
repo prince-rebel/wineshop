@@ -1,0 +1,147 @@
+// Styles communs des documents LAROV (reprennent la mise en page des modèles
+// Excel du client : bandeau titre, blocs d'infos à deux colonnes, tableau
+// à en-tête sombre, ligne TOTAL, bloc de suivi, signatures, note de bas).
+
+.larov-doc {
+    font-size: 10.5px;
+    color: #222;
+
+    .larov-brand {
+        text-align: center;
+        margin-bottom: 4px;
+        .larov-brand-name { font-size: 15px; font-weight: 700; letter-spacing: 1px; }
+        .larov-brand-line { font-size: 9px; color: #555; }
+    }
+
+    .larov-title {
+        background: #5b1f2a;           // bordeaux
+        color: #fff;
+        text-align: center;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        padding: 6px 0;
+        margin: 8px 0 4px 0;
+    }
+    .larov-subtitle {
+        text-align: center;
+        font-size: 9px;
+        color: #777;
+        margin-bottom: 8px;
+    }
+
+    .larov-info-block {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 8px;
+        th.larov-block-head {
+            background: #e9e2d8;
+            font-weight: 700;
+            text-align: left;
+            padding: 3px 6px;
+            font-size: 10px;
+        }
+        td { padding: 2px 6px; vertical-align: top; }
+        td.larov-label { color: #555; width: 38%; white-space: nowrap; }
+        td.larov-value { font-weight: 600; }
+    }
+
+    table.larov-lines {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 4px;
+        thead th {
+            background: #2b2b2b;
+            color: #fff;
+            font-weight: 600;
+            padding: 4px 4px;
+            font-size: 9.5px;
+            text-align: left;
+            &.num { text-align: right; }
+            &.ctr { text-align: center; }
+        }
+        tbody td {
+            border-bottom: 1px solid #ddd;
+            padding: 3px 4px;
+            &.num { text-align: right; white-space: nowrap; }
+            &.ctr { text-align: center; }
+        }
+        tr.larov-total td {
+            border-top: 2px solid #2b2b2b;
+            border-bottom: none;
+            font-weight: 700;
+            background: #f4f1ec;
+        }
+        tr.larov-warning td { color: #a33; font-weight: 600; }
+        tr.larov-neg td { color: #a33; }
+    }
+
+    .larov-note-ok, .larov-note-warn {
+        margin: 8px 0;
+        padding: 5px 8px;
+        font-weight: 600;
+        border-left: 4px solid;
+    }
+    .larov-note-ok   { border-color: #2e7d32; background: #eef6ee; color: #2e7d32; }
+    .larov-note-warn { border-color: #b26a00; background: #fff5e5; color: #8a4b00; }
+
+    .larov-section {
+        background: #e9e2d8;
+        font-weight: 700;
+        padding: 3px 6px;
+        margin-top: 10px;
+        font-size: 10px;
+    }
+
+    table.larov-tracking {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 4px;
+        td {
+            width: 33%;
+            padding: 4px 6px;
+            border: 1px solid #ddd;
+            .larov-track-label { color: #555; font-size: 9px; }
+            .larov-track-value { font-weight: 600; font-size: 11px; }
+        }
+    }
+
+    table.larov-signatures {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 14px;
+        th {
+            background: #e9e2d8;
+            font-weight: 700;
+            text-align: left;
+            padding: 3px 6px;
+            font-size: 9.5px;
+            border: 1px solid #cfc7bb;
+        }
+        td {
+            height: 62px;
+            vertical-align: top;
+            padding: 4px 6px;
+            border: 1px solid #cfc7bb;
+            font-size: 9.5px;
+            line-height: 1.7;
+        }
+    }
+
+    .larov-footnote {
+        margin-top: 10px;
+        font-size: 8.5px;
+        color: #555;
+        font-style: italic;
+        border-top: 1px solid #ccc;
+        padding-top: 4px;
+    }
+
+    .larov-box {
+        border: 1px solid #cfc7bb;
+        min-height: 40px;
+        padding: 4px 6px;
+        margin-top: 4px;
+        white-space: pre-wrap;
+    }
+}

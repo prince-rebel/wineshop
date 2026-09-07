@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_larov_commercial_zone_list" model="ir.ui.view">
+        <field name="name">larov.commercial.zone.list</field>
+        <field name="model">larov.commercial.zone</field>
+        <field name="arch" type="xml">
+            <list string="Secteurs commerciaux" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="salesperson_id" widget="many2one_avatar_user"/>
+                <field name="partner_count"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_larov_commercial_zone" model="ir.actions.act_window">
+        <field name="name">Secteurs commerciaux</field>
+        <field name="res_model">larov.commercial.zone</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Créez un secteur commercial</p>
+            <p>Les clients sont rattachés à un secteur (région commerciale) pour la
+               segmentation et le chiffre d'affaires par région.</p>
+        </field>
+    </record>
+</odoo>

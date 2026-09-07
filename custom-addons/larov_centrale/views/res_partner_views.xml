@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_larov" model="ir.ui.view">
+        <field name="name">res.partner.form.inherit.larov.centrale</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="customer_segment"/>
+                <field name="commercial_zone_id" options="{'no_create_edit': True}"/>
+            </xpath>
+            <xpath expr="//group[@name='sale']" position="inside">
+                <field name="is_consignment_deposit"/>
+                <field name="deposit_warehouse_id" invisible="not is_consignment_deposit"
+                       required="is_consignment_deposit" options="{'no_create_edit': True}"/>
+                <field name="is_forwarder"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_tree_larov" model="ir.ui.view">
+        <field name="name">res.partner.list.inherit.larov.centrale</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="arch" type="xml">
+            <field name="phone" position="after">
+                <field name="customer_segment" optional="show"/>
+                <field name="commercial_zone_id" optional="show"/>
+                <field name="is_forwarder" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_res_partner_filter_larov" model="ir.ui.view">
+        <field name="name">res.partner.search.inherit.larov.centrale</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <field name="commercial_zone_id"/>
+                <separator/>
+                <filter string="CHR externes" name="larov_chr" domain="[('customer_segment', '=', 'chr')]"/>
+                <filter string="Groupe" name="larov_group" domain="[('customer_segment', '=', 'group')]"/>
+                <filter string="Particuliers" name="larov_individual" domain="[('customer_segment', '=', 'individual')]"/>
+                <filter string="Entreprises" name="larov_company" domain="[('customer_segment', '=', 'company')]"/>
+                <filter string="Transitaires" name="larov_forwarder" domain="[('is_forwarder', '=', True)]"/>
+                <filter string="Dépôts-vente" name="larov_deposit" domain="[('is_consignment_deposit', '=', True)]"/>
+                <group>
+                    <filter string="Type de client" name="groupby_segment" context="{'group_by': 'customer_segment'}"/>
+                    <filter string="Secteur commercial" name="groupby_zone" context="{'group_by': 'commercial_zone_id'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

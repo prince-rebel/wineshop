@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_larov_wine_region_list" model="ir.ui.view">
+        <field name="name">larov.wine.region.list</field>
+        <field name="model">larov.wine.region</field>
+        <field name="arch" type="xml">
+            <list string="Régions viticoles" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="country_id" optional="show"/>
+                <field name="product_count"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_larov_wine_region" model="ir.actions.act_window">
+        <field name="name">Régions viticoles</field>
+        <field name="res_model">larov.wine.region</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Créez une région viticole</p>
+            <p>La région est imprimée sur tous les documents LAROV et sert d'axe d'analyse
+               pour l'inventaire en valeur et le chiffre d'affaires.</p>
+        </field>
+    </record>
+</odoo>

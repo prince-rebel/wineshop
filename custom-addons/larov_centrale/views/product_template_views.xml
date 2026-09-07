@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Fiche produit : onglet « Vin » -->
+    <record id="product_template_form_view_larov" model="ir.ui.view">
+        <field name="name">product.template.form.inherit.larov.centrale</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Vin" name="larov_wine">
+                    <group>
+                        <group string="Identification">
+                            <field name="is_wine"/>
+                            <field name="appellation" invisible="not is_wine" placeholder="Par défaut : le nom du produit"/>
+                            <field name="estate" invisible="not is_wine"/>
+                            <field name="wine_region_id" options="{'no_create_edit': True}"/>
+                            <field name="wine_color" invisible="not is_wine"/>
+                            <field name="vintage" invisible="not is_wine"/>
+                            <field name="bottle_size" invisible="not is_wine"/>
+                            <field name="bottles_per_case"/>
+                        </group>
+                        <group string="Réapprovisionnement">
+                            <field name="monthly_sales_qty"/>
+                            <field name="coverage_months"/>
+                            <field name="incoming_po_qty"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Liste produits : colonnes région / couleur / millésime -->
+    <record id="product_template_tree_view_larov" model="ir.ui.view">
+        <field name="name">product.template.list.inherit.larov.centrale</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <field name="default_code" position="after">
+                <field name="wine_region_id" optional="show"/>
+                <field name="wine_color" optional="show"/>
+                <field name="vintage" optional="show"/>
+                <field name="estate" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- Recherche : filtres et regroupements par région / couleur -->
+    <record id="product_template_search_view_larov" model="ir.ui.view">
+        <field name="name">product.template.search.inherit.larov.centrale</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <field name="wine_region_id"/>
+                <field name="estate"/>
+                <field name="vintage"/>
+                <separator/>
+                <filter string="Rouges" name="larov_rouge" domain="[('wine_color', '=', 'rouge')]"/>
+                <filter string="Blancs" name="larov_blanc" domain="[('wine_color', '=', 'blanc')]"/>
+                <filter string="Rosés" name="larov_rose" domain="[('wine_color', '=', 'rose')]"/>
+                <filter string="Effervescents" name="larov_effervescent" domain="[('wine_color', '=', 'effervescent')]"/>
+                <group>
+                    <filter string="Région" name="groupby_region" context="{'group_by': 'wine_region_id'}"/>
+                    <filter string="Couleur" name="groupby_color" context="{'group_by': 'wine_color'}"/>
+                    <filter string="Millésime" name="groupby_vintage" context="{'group_by': 'vintage'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

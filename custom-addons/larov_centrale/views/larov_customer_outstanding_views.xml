@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_larov_customer_outstanding_list" model="ir.ui.view">
+        <field name="name">larov.customer.outstanding.list</field>
+        <field name="model">larov.customer.outstanding</field>
+        <field name="arch" type="xml">
+            <list string="Encours clients" create="false" edit="false" delete="false"
+                  decoration-danger="status == 'overdue'" decoration-muted="status == 'paid'" decoration-bf="to_remind">
+                <field name="partner_id"/>
+                <field name="customer_segment" optional="show"/>
+                <field name="commercial_zone_id" optional="hide"/>
+                <field name="payment_term_id" optional="show"/>
+                <field name="invoice_date"/>
+                <field name="move_name"/>
+                <field name="invoice_origin" optional="hide"/>
+                <field name="amount_total" sum="Total facturé"/>
+                <field name="amount_paid" sum="Total réglé"/>
+                <field name="amount_residual" sum="Total encours"/>
+                <field name="invoice_date_due"/>
+                <field name="days_overdue"/>
+                <field name="status" widget="badge" decoration-danger="status == 'overdue'" decoration-success="status == 'paid'" decoration-info="status == 'upcoming'"/>
+                <field name="aging_bucket" optional="hide"/>
+                <field name="risk_level" optional="show"/>
+                <field name="to_remind" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <button name="action_open_invoice" type="object" icon="fa-external-link" title="Ouvrir la facture"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_larov_customer_outstanding_pivot" model="ir.ui.view">
+        <field name="name">larov.customer.outstanding.pivot</field>
+        <field name="model">larov.customer.outstanding</field>
+        <field name="arch" type="xml">
+            <pivot string="Encours clients">
+                <field name="partner_id" type="row"/>
+                <field name="invoice_date" interval="month" type="col"/>
+                <field name="amount_total" type="measure"/>
+                <field name="amount_paid" type="measure"/>
+                <field name="amount_residual" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_larov_customer_outstanding_graph" model="ir.ui.view">
+        <field name="name">larov.customer.outstanding.graph</field>
+        <field name="model">larov.customer.outstanding</field>
+        <field name="arch" type="xml">
+            <graph string="Encours par client" type="bar">
+                <field name="partner_id"/>
+                <field name="amount_residual" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_larov_customer_outstanding_search" model="ir.ui.view">
+        <field name="name">larov.customer.outstanding.search</field>
+        <field name="model">larov.customer.outstanding</field>
+        <field name="arch" type="xml">
+            <search string="Encours clients">
+                <field name="partner_id"/>
+                <field name="move_name"/>
+                <field name="invoice_origin"/>
+                <filter string="Non soldées" name="open" domain="[('status', '!=', 'paid')]"/>
+                <filter string="Échues" name="overdue" domain="[('status', '=', 'overdue')]"/>
+                <filter string="À relancer" name="to_remind" domain="[('status', '=', 'overdue'), ('customer_segment', '=', 'chr')]"/>
+                <separator/>
+                <filter string="CHR externes" name="chr" domain="[('customer_segment', '=', 'chr')]"/>
+                <filter string="Groupe" name="group" domain="[('customer_segment', '=', 'group')]"/>
+                <separator/>
+                <filter string="Date de facture" name="filter_invoice_date" date="invoice_date"/>
+                <group>
+                    <filter string="Client" name="groupby_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Type de client" name="groupby_segment" context="{'group_by': 'customer_segment'}"/>
+                    <filter string="Secteur" name="groupby_zone" context="{'group_by': 'commercial_zone_id'}"/>
+                    <filter string="Statut" name="groupby_status" context="{'group_by': 'status'}"/>
+                    <filter string="Ancienneté" name="groupby_aging" context="{'group_by': 'aging_bucket'}"/>
+                    <filter string="Mois de facture" name="groupby_month" context="{'group_by': 'invoice_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_larov_customer_outstanding" model="ir.actions.act_window">
+        <field name="name">Encours clients</field>
+        <field name="res_model">larov.customer.outstanding</field>
+        <field name="view_mode">list,pivot,graph</field>
+        <field name="search_view_id" ref="view_larov_customer_outstanding_search"/>
+        <field name="context">{'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">Aucune facture client comptabilisée</p>
+            <p>L'encours se calcule sur les factures clients enregistrées dans Odoo (Facturation).
+               Sélectionnez des lignes puis Imprimer › Encours clients (LAROV) pour le tableau PDF ;
+               la vue pivot par mois reproduit le tableau de suivi mensuel.</p>
+        </field>
+    </record>
+
+    <!-- Menus : Facturation › Analyse et Ventes › Analyse -->
+    <menuitem id="menu_larov_customer_outstanding_account"
+              name="Encours clients (LAROV)"
+              parent="account.menu_finance_reports"
+              action="action_larov_customer_outstanding"
+              sequence="5"/>
+    <menuitem id="menu_larov_customer_outstanding_sale"
+              name="Encours clients"
+              parent="sale.menu_sale_report"
+              action="action_larov_customer_outstanding"
+              sequence="30"/>
+</odoo>

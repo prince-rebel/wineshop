@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Format paysage pour les états larges (inventaire en valeur, réappro) -->
+    <record id="paperformat_larov_landscape" model="report.paperformat">
+        <field name="name">LAROV A4 paysage</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">40</field>
+        <field name="margin_bottom">24</field>
+        <field name="margin_left">6</field>
+        <field name="margin_right">6</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">36</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         INVENTAIRE EN VALEUR — dépôts en colonnes + synthèses
+         Source : LAROV_Inventaire_Valeur.xlsx
+    ══════════════════════════════════════════════════════════════════ -->
+    <template id="report_stock_valuation_larov">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="d">
+                <t t-call="web.external_layout">
+                    <t t-set="cur" t-value="company.currency_id"/>
+                    <div class="page larov-doc" style="font-size: 8.5px;">
+                        <t t-call="larov_centrale.larov_doc_header">
+                            <t t-set="title">INVENTAIRE DE STOCK EN VALEUR — au <t t-esc="today.strftime('%d/%m/%Y')"/></t>
+                            <t t-set="subtitle">Quantité × prix unitaire CMUP &#183; <t t-esc="len(d['rows'])"/> références &#183; <t t-esc="len(d['warehouses'])"/> établissements</t>
+                        </t>
+                        <table class="larov-lines" style="font-size: 8px;">
+                            <thead>
+                                <tr>
+                                    <th>Réf.</th>
+                                    <th>Désignation</th>
+                                    <th>Région</th>
+                                    <th>Couleur</th>
+                                    <th>Fournisseur</th>
+                                    <th class="num">Qté totale</th>
+                                    <th class="num">P.U. CMUP</th>
+                                    <th class="num">VALEUR STOCK</th>
+                                    <th class="num">% valeur</th>
+                                    <t t-foreach="d['warehouses']" t-as="wh">
+                                        <th class="num" style="background:#3b5b3b;"><t t-esc="wh.name"/></th>
+                                    </t>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="d['rows']" t-as="row">
+                                    <tr>
+                                        <td><t t-esc="row['code']"/></td>
+                                        <td><t t-esc="row['name']"/></td>
+                                        <td><t t-esc="row['region']"/></td>
+                                        <td><t t-esc="row['color']"/></td>
+                                        <td><t t-esc="row['supplier']"/></td>
+                                        <td class="num"><t t-esc="'{:,.0f}'.format(row['qty']).replace(',', ' ')"/></td>
+                                        <td class="num"><t t-esc="'{:,.0f}'.format(row['unit_cost']).replace(',', ' ')"/></td>
+                                        <td class="num"><b><t t-esc="'{:,.0f}'.format(row['value']).replace(',', ' ')"/></b></td>
+                                        <td class="num"><t t-esc="'{:.1f} %'.format(row['pct'])"/></td>
+                                        <t t-foreach="d['warehouses']" t-as="wh">
+                                            <td class="num"><t t-esc="row['by_wh'].get(wh.id) and '{:,.0f}'.format(row['by_wh'][wh.id]).replace(',', ' ') or ''"/></td>
+                                        </t>
+                                    </tr>
+                                </t>
+                                <tr class="larov-total">
+                                    <td colspan="5">TOTAL</td>
+                                    <td class="num"><t t-esc="'{:,.0f}'.format(d['total_qty']).replace(',', ' ')"/></td>
+                                    <td></td>
+                                    <td class="num"><t t-esc="'{:,.0f}'.format(d['total_value']).replace(',', ' ')"/> <t t-esc="cur.symbol"/></td>
+                                    <td class="num">100 %</td>
+                                    <t t-foreach="d['warehouses']" t-as="wh">
+                                        <td class="num"><t t-esc="'{:,.0f}'.format(d['by_wh_qty'].get(wh.id, 0)).replace(',', ' ')"/></td>
+                                    </t>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div style="page-break-before: always;"/>
+                        <div class="larov-title" style="font-size: 12px;">SYNTHÈSES DE VALORISATION — au <t t-esc="today.strftime('%d/%m/%Y')"/></div>
+                        <table style="width:100%; border-collapse:collapse;">
+                            <tr>
+                                <td style="width:48%; vertical-align:top; padding-right:10px;">
+                                    <table class="larov-lines">
+                                        <thead><tr><th>PAR RÉGION</th><th class="num">Valeur</th><th class="num">%</th></tr></thead>
+                                        <tbody>
+                                            <t t-foreach="d['by_region']" t-as="kv">
+                                                <tr>
+                                                    <td><t t-esc="kv[0]"/></td>
+                                                    <td class="num"><t t-esc="'{:,.0f}'.format(kv[1]).replace(',', ' ')"/></td>
+                                                    <td class="num"><t t-esc="'{:.1f} %'.format(d['total_value'] and kv[1] / d['total_value'] * 100 or 0)"/></td>
+                                                </tr>
+                                            </t>
+                                            <tr class="larov-total"><td>TOTAL</td><td class="num"><t t-esc="'{:,.0f}'.format(d['total_value']).replace(',', ' ')"/></td><td class="num">100 %</td></tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                                <td style="width:4%;"></td>
+                                <td style="width:48%; vertical-align:top;">
+                                    <table class="larov-lines">
+                                        <thead><tr><th>PAR ÉTABLISSEMENT</th><th class="num">Valeur</th><th class="num">%</th></tr></thead>
+                                        <tbody>
+                                            <t t-foreach="d['by_warehouse']" t-as="kv">
+                                                <tr>
+                                                    <td><t t-esc="kv[0]"/></td>
+                                                    <td class="num"><t t-esc="'{:,.0f}'.format(kv[1]).replace(',', ' ')"/></td>
+                                                    <td class="num"><t t-esc="'{:.1f} %'.format(d['total_value'] and kv[1] / d['total_value'] * 100 or 0)"/></td>
+                                                </tr>
+                                            </t>
+                                            <tr class="larov-total"><td>TOTAL</td><td class="num"><t t-esc="'{:,.0f}'.format(d['total_value']).replace(',', ' ')"/></td><td class="num">100 %</td></tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                        <div class="larov-footnote">
+                            Les pourcentages se rapportent à la valeur totale du stock. « Non renseigné » = référence sans région viticole.
+                            Le coût unitaire est le coût de revient du produit (CMUP, coûts logistiques inclus).
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_stock_valuation_larov" model="ir.actions.report">
+        <field name="name">Inventaire en valeur (LAROV)</field>
+        <field name="model">larov.stock.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">larov_centrale.report_stock_valuation_larov</field>
+        <field name="report_file">larov_centrale.report_stock_valuation_larov</field>
+        <field name="print_report_name">'Inventaire_valeur_%s' % (object.create_date.strftime('%Y%m%d'))</field>
+        <field name="paperformat_id" ref="paperformat_larov_landscape"/>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         FICHE COMMERCIALE
+         Source : image « TEMPLATE FICHE COMMERCIALE »
+    ══════════════════════════════════════════════════════════════════ -->
+    <template id="report_commercial_sheet_larov">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="d">
+                <t t-call="web.external_layout">
+                    <t t-set="cur" t-value="company.currency_id"/>
+                    <div class="page larov-doc">
+                        <t t-call="larov_centrale.larov_doc_header">
+                            <t t-set="title">FICHE COMMERCIALE — au <t t-esc="today.strftime('%d/%m/%Y')"/></t>
+                            <t t-set="subtitle">Disponibilités et tarifs &#183; prix TTC &#183; <t t-esc="len(d['products'])"/> références</t>
+                        </t>
+                        <table class="larov-lines">
+                            <thead>
+                                <tr>
+                                    <th>Réf.</th>
+                                    <th>Désignation</th>
+                                    <th>Région</th>
+                                    <th>Couleur</th>
+                                    <th class="ctr">Mill.</th>
+                                    <th class="num">Stock disponible</th>
+                                    <th class="num">Prix CHR</th>
+                                    <th class="num">Prix à emporter</th>
+                                    <th class="num">Arrivage en cours</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="d['products']" t-as="p">
+                                    <tr t-att-class="p.qty_available &lt;= 0 and 'larov-neg' or ''">
+                                        <td><t t-esc="p.default_code or ''"/></td>
+                                        <td><t t-esc="p.product_tmpl_id._get_larov_appellation()"/><t t-if="p.estate"> — <t t-esc="p.estate"/></t></td>
+                                        <td><t t-esc="p.wine_region_id.name or ''"/></td>
+                                        <td><t t-esc="p.wine_color_display"/></td>
+                                        <td class="ctr"><t t-esc="p.vintage_display"/></td>
+                                        <td class="num"><t t-esc="'{:,.0f}'.format(p.qty_available).replace(',', ' ')"/></td>
+                                        <td class="num"><t t-esc="p.price_chr" t-options='{"widget": "monetary", "display_currency": cur}'/></td>
+                                        <td class="num"><t t-esc="p.price_takeaway" t-options='{"widget": "monetary", "display_currency": cur}'/></td>
+                                        <td class="num"><t t-esc="p.incoming_po_qty and '{:,.0f}'.format(p.incoming_po_qty).replace(',', ' ') or ''"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <div class="larov-footnote">
+                            Stock disponible = quantité en stock non réservée
+                            <t t-if="d['wizard'].warehouse_ids"> (établissements : <t t-esc="', '.join(d['wizard'].warehouse_ids.mapped('name'))"/>)</t>
+                            <t t-else=""> (tous établissements)</t>.
+                            Arrivage en cours = quantité commandée aux fournisseurs et non encore réceptionnée.
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_commercial_sheet_larov" model="ir.actions.report">
+        <field name="name">Fiche commerciale (LAROV)</field>
+        <field name="model">larov.stock.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">larov_centrale.report_commercial_sheet_larov</field>
+        <field name="report_file">larov_centrale.report_commercial_sheet_larov</field>
+        <field name="print_report_name">'Fiche_commerciale_%s' % (object.create_date.strftime('%Y%m%d'))</field>
+        <field name="paperformat_id" ref="base.paperformat_euro"/>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         RAPPORT DE RÉAPPROVISIONNEMENT
+         Source : image « TEMPLATE COMMANDE » (stock d'alerte = vente mensuelle × 4,
+         estimation rupture = stock / vente mensuelle, proposition = vente × 4)
+    ══════════════════════════════════════════════════════════════════ -->
+    <template id="report_replenishment_larov">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="d">
+                <t t-call="web.external_layout">
+                    <t t-set="wiz" t-value="d['wizard']"/>
+                    <div class="page larov-doc">
+                        <t t-call="larov_centrale.larov_doc_header">
+                            <t t-set="title">RAPPORT DE RÉAPPROVISIONNEMENT — au <t t-esc="today.strftime('%d/%m/%Y')"/></t>
+                            <t t-set="subtitle">Vente mensuelle sur <t t-esc="wiz.history_months"/> mois &#183; couverture visée <t t-esc="'%g' % wiz.coverage_months"/> mois &#183; <t t-esc="len(d['products'])"/> références</t>
+                        </t>
+                        <table class="larov-lines">
+                            <thead>
+                                <tr>
+                                    <th>Réf.</th>
+                                    <th>Désignation</th>
+                                    <th>Région</th>
+                                    <th class="num">Stock disponible</th>
+                                    <th class="num">Vente mensuelle</th>
+                                    <th class="num">Stock d'alerte</th>
+                                    <th class="num">Estimation rupture (mois)</th>
+                                    <th class="num">Arrivage en cours</th>
+                                    <th class="num">Proposition commande</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="d['products']" t-as="p">
+                                    <tr t-att-class="p.suggested_order_qty > 0 and 'larov-warning' or ''">
+                                        <td><t t-esc="p.default_code or ''"/></td>
+                                        <td><t t-esc="p.product_tmpl_id._get_larov_appellation()"/><t t-if="p.vintage"> <t t-esc="p.vintage"/></t></td>
+                                        <td><t t-esc="p.wine_region_id.name or ''"/></td>
+                                        <td class="num"><t t-esc="'{:,.0f}'.format(p.qty_available).replace(',', ' ')"/></td>
+                                        <td class="num"><t t-esc="'{:,.1f}'.format(p.monthly_sales_qty).replace(',', ' ')"/></td>
+                                        <td class="num"><t t-esc="'{:,.0f}'.format(p.alert_stock_qty).replace(',', ' ')"/></td>
+                                        <td class="num"><t t-esc="p.monthly_sales_qty and '{:.1f}'.format(p.stockout_estimate_months) or '—'"/></td>
+                                        <td class="num"><t t-esc="p.incoming_po_qty and '{:,.0f}'.format(p.incoming_po_qty).replace(',', ' ') or ''"/></td>
+                                        <td class="num"><b><t t-esc="p.suggested_order_qty and '{:,.0f}'.format(p.suggested_order_qty).replace(',', ' ') or ''"/></b></td>
+                                    </tr>
+                                </t>
+                                <tr class="larov-total">
+                                    <td colspan="3">TOTAL</td>
+                                    <td class="num"><t t-esc="'{:,.0f}'.format(sum(d['products'].mapped('qty_available'))).replace(',', ' ')"/></td>
+                                    <td class="num"><t t-esc="'{:,.1f}'.format(sum(d['products'].mapped('monthly_sales_qty'))).replace(',', ' ')"/></td>
+                                    <td class="num"><t t-esc="'{:,.0f}'.format(sum(d['products'].mapped('alert_stock_qty'))).replace(',', ' ')"/></td>
+                                    <td></td>
+                                    <td class="num"><t t-esc="'{:,.0f}'.format(sum(d['products'].mapped('incoming_po_qty'))).replace(',', ' ')"/></td>
+                                    <td class="num"><t t-esc="'{:,.0f}'.format(sum(d['products'].mapped('suggested_order_qty'))).replace(',', ' ')"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="larov-footnote">
+                            Stock d'alerte = vente mensuelle × couverture visée. Estimation rupture = stock disponible ÷ vente mensuelle.
+                            Proposition de commande = stock d'alerte − stock disponible − arrivage en cours.
+                            Les lignes en rouge sont à commander.
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_replenishment_larov" model="ir.actions.report">
+        <field name="name">Rapport de réapprovisionnement (LAROV)</field>
+        <field name="model">larov.stock.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">larov_centrale.report_replenishment_larov</field>
+        <field name="report_file">larov_centrale.report_replenishment_larov</field>
+        <field name="print_report_name">'Reappro_%s' % (object.create_date.strftime('%Y%m%d'))</field>
+        <field name="paperformat_id" ref="paperformat_larov_landscape"/>
+    </record>
+</odoo>

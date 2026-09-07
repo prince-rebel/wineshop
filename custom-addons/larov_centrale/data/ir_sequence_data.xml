@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Décision cadrage : codification client VINxx reprise.
+         La séquence automatique du module product_reference_sequence passe
+         au préfixe VIN et démarre au-delà des codes existants (VIN1…VIN299). -->
+    <function model="ir.sequence" name="write">
+        <value model="ir.sequence" eval="[ref('product_reference_sequence.seq_product_template_reference')]"/>
+        <value eval="{'prefix': 'VIN', 'padding': 1}"/>
+    </function>
+    <function model="ir.sequence" name="write">
+        <value model="ir.sequence" eval="[ref('product_reference_sequence.seq_product_template_reference')]"/>
+        <value eval="{'number_next_actual': 300}"/>
+    </function>
+</odoo>

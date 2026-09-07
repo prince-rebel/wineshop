@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Hérite de la vue du module existant pour placer le type d'établissement
+         juste avant la case « Est un magasin POS » qu'il pilote. -->
+    <record id="view_warehouse_form_larov" model="ir.ui.view">
+        <field name="name">stock.warehouse.form.inherit.larov.centrale</field>
+        <field name="model">stock.warehouse</field>
+        <field name="inherit_id" ref="pos_store_replenishment.view_warehouse_form_pos_store"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='is_pos_store']/.." position="attributes">
+                <attribute name="string">Établissement LAROV</attribute>
+            </xpath>
+            <xpath expr="//field[@name='is_pos_store']" position="before">
+                <field name="establishment_type" widget="radio"/>
+                <field name="consignee_partner_id" invisible="establishment_type != 'chr_deposit'"
+                       required="establishment_type == 'chr_deposit'"
+                       domain="[('customer_segment', 'in', ('chr', 'group'))]"/>
+            </xpath>
+            <xpath expr="//field[@name='is_pos_store']" position="attributes">
+                <attribute name="readonly">1</attribute>
+                <attribute name="force_save">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_warehouse_tree_larov" model="ir.ui.view">
+        <field name="name">stock.warehouse.list.inherit.larov.centrale</field>
+        <field name="model">stock.warehouse</field>
+        <field name="inherit_id" ref="stock.view_warehouse_tree"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="after">
+                <field name="establishment_type"/>
+                <field name="consignee_partner_id" optional="show"/>
+            </field>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_larov_wine_region_user,larov.wine.region user,model_larov_wine_region,base.group_user,1,0,0,0
+access_larov_wine_region_manager,larov.wine.region manager,model_larov_wine_region,stock.group_stock_manager,1,1,1,1
+access_larov_commercial_zone_user,larov.commercial.zone user,model_larov_commercial_zone,base.group_user,1,0,0,0
+access_larov_commercial_zone_manager,larov.commercial.zone manager,model_larov_commercial_zone,sales_team.group_sale_manager,1,1,1,1
+access_larov_stock_valuation_report_user,larov.stock.valuation.report user,model_larov_stock_valuation_report,stock.group_stock_user,1,0,0,0
+access_larov_stock_report_wizard_user,larov.stock.report.wizard user,model_larov_stock_report_wizard,stock.group_stock_user,1,1,1,1
+access_larov_customer_outstanding_user,larov.customer.outstanding user,model_larov_customer_outstanding,account.group_account_invoice,1,0,0,0
+access_larov_customer_outstanding_sale,larov.customer.outstanding sales,model_larov_customer_outstanding,sales_team.group_sale_salesman,1,0,0,0

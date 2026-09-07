@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Titre du document (le logo et l'adresse viennent de l'en-tête société standard) -->
+    <template id="larov_doc_header">
+        <div class="larov-title"><t t-esc="title"/></div>
+        <div class="larov-subtitle" t-if="subtitle"><t t-esc="subtitle"/></div>
+    </template>
+
+    <!-- Bloc d'informations : liste de couples (libellé, valeur) -->
+    <template id="larov_info_block">
+        <table class="larov-info-block">
+            <tr><th class="larov-block-head" colspan="2"><t t-esc="block_title"/></th></tr>
+            <t t-foreach="rows" t-as="row">
+                <tr>
+                    <td class="larov-label"><t t-esc="row[0]"/></td>
+                    <td class="larov-value"><t t-esc="row[1] or '—'"/></td>
+                </tr>
+            </t>
+        </table>
+    </template>
+
+    <!-- Bloc signatures : liste de (titre, nom pré-rempli ou vide) -->
+    <template id="larov_signatures">
+        <table class="larov-signatures">
+            <tr>
+                <t t-foreach="signatures" t-as="sig">
+                    <th><t t-esc="sig[0]"/></th>
+                </t>
+            </tr>
+            <tr>
+                <t t-foreach="signatures" t-as="sig">
+                    <td>
+                        Nom : <t t-esc="sig[1] or ''"/><br/>
+                        Date :<br/>
+                        <t t-esc="sig[2] if len(sig) > 2 and sig[2] else 'Signature :'"/>
+                    </td>
+                </t>
+            </tr>
+        </table>
+    </template>
+</odoo>

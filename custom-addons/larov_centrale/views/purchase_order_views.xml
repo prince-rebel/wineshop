@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_order_form_larov" model="ir.ui.view">
+        <field name="name">purchase.order.form.inherit.larov.centrale</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Bandeau : couverture à justifier (règle 6 mois) -->
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-warning mb-0" role="alert" invisible="not has_coverage_warning">
+                    <i class="fa fa-exclamation-triangle me-1"/>
+                    Au moins une référence dépasse la couverture maximale après réception :
+                    la commande doit être justifiée auprès de la Direction générale.
+                </div>
+            </xpath>
+
+            <!-- En-tête : import -->
+            <xpath expr="//field[@name='partner_ref']" position="after">
+                <field name="forwarder_id" options="{'no_create_edit': True}"/>
+                <field name="transport_mode"/>
+                <field name="delivery_terms" placeholder="Départ cave — enlèvement groupé"/>
+                <field name="expected_arrival_date"/>
+            </xpath>
+
+            <!-- Onglet « Import & suivi » -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Import &amp; suivi" name="larov_import">
+                    <group>
+                        <group string="Paramètres de la commande">
+                            <field name="target_coverage_months"/>
+                            <field name="bottles_per_case"/>
+                            <field name="exchange_rate_xof"/>
+                            <field name="amount_total_xof"/>
+                            <field name="total_bottles"/>
+                            <field name="total_cases"/>
+                        </group>
+                        <group string="Suivi de la commande">
+                            <field name="import_status" invisible="state not in ('purchase', 'done')"/>
+                            <field name="date_approve" string="Commande passée" readonly="1"/>
+                            <field name="date_deposit_paid"/>
+                            <field name="date_pickup"/>
+                            <field name="date_shipped"/>
+                            <field name="date_arrived_port"/>
+                            <field name="date_received_warehouse"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+
+            <!-- Lignes : région, millésime, cartons, stock, couverture -->
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_qty']" position="after">
+                <field name="cases_qty" optional="show"/>
+                <field name="qty_stock_current" optional="show"/>
+                <field name="monthly_sales_qty" optional="hide"/>
+                <field name="coverage_after_receipt" optional="show"
+                       decoration-danger="coverage_warning" decoration-bf="coverage_warning"/>
+                <field name="coverage_warning" column_invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_id']" position="after">
+                <field name="wine_region_id" optional="hide"/>
+                <field name="vintage_display" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="purchase_order_tree_larov" model="ir.ui.view">
+        <field name="name">purchase.order.list.inherit.larov.centrale</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_view_tree"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="after">
+                <field name="forwarder_id" optional="show"/>
+                <field name="import_status" optional="show" widget="badge"
+                       decoration-info="import_status in ('ordered', 'deposit_paid')"
+                       decoration-warning="import_status in ('picked_up', 'shipped', 'arrived')"
+                       decoration-success="import_status == 'received'"/>
+                <field name="expected_arrival_date" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="purchase_order_search_larov" model="ir.ui.view">
+        <field name="name">purchase.order.search.inherit.larov.centrale</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.view_purchase_order_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <field name="forwarder_id"/>
+                <filter string="En cours d'acheminement" name="larov_in_transit"
+                        domain="[('import_status', 'in', ('deposit_paid', 'picked_up', 'shipped', 'arrived'))]"/>
+                <group>
+                    <filter string="Transitaire" name="groupby_forwarder" context="{'group_by': 'forwarder_id'}"/>
+                    <filter string="Étape d'import" name="groupby_import_status" context="{'group_by': 'import_status'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

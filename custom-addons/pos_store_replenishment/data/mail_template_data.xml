@@ -6,7 +6,7 @@
         <field name="name">Alerte stock bas — Magasin POS</field>
         <field name="model_id" ref="stock.model_stock_warehouse_orderpoint"/>
         <field name="subject">⚠️ Rupture de stock — {{ object.warehouse_id.name }} — {{ object.product_id.display_name }}</field>
-        <field name="email_from">{{ (object.company_id.email or user.email) | safe }}</field>
+        <field name="email_from">{{ (object.company_id.email or user.email) }}</field>
         <field name="email_to">{{ object.warehouse_id.central_warehouse_id.partner_id.email or '' }}</field>
         <field name="body_html" type="html">
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

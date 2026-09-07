@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_larov" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.larov.centrale</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='stock']" position="inside">
+                <block title="LAROV — Règles de réapprovisionnement" name="larov_centrale_settings">
+                    <setting id="larov_coverage_setting" string="Couverture de stock"
+                             help="Règle LAROV : le stock après réception doit couvrir 4 mois de vente ; au-delà de 6 mois la commande doit être justifiée.">
+                        <div class="content-group">
+                            <div class="row mt8">
+                                <label for="larov_coverage_months" class="col-lg-5 o_light_label"/>
+                                <field name="larov_coverage_months" class="col-lg-3"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="larov_max_coverage_months" class="col-lg-5 o_light_label"/>
+                                <field name="larov_max_coverage_months" class="col-lg-3"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="larov_sales_history_months" class="col-lg-5 o_light_label"/>
+                                <field name="larov_sales_history_months" class="col-lg-3"/>
+                            </div>
+                        </div>
+                    </setting>
+                    <setting id="larov_pricelists_setting" string="Tarifs LAROV"
+                             help="Listes de prix utilisées pour les colonnes « Prix CHR » et « Prix à emporter » de la fiche commerciale.">
+                        <div class="content-group">
+                            <div class="row mt8">
+                                <label for="larov_pricelist_chr_id" class="col-lg-5 o_light_label"/>
+                                <field name="larov_pricelist_chr_id" class="col-lg-6" options="{'no_create': True}"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="larov_pricelist_takeaway_id" class="col-lg-5 o_light_label"/>
+                                <field name="larov_pricelist_takeaway_id" class="col-lg-6" options="{'no_create': True}"/>
+                            </div>
+                        </div>
+                    </setting>
+                    <setting id="larov_packaging_setting" string="Conditionnement"
+                             help="Nombre de bouteilles par carton proposé par défaut sur les commandes fournisseur.">
+                        <div class="content-group">
+                            <div class="row mt8">
+                                <label for="larov_bottles_per_case" class="col-lg-5 o_light_label"/>
+                                <field name="larov_bottles_per_case" class="col-lg-3"/>
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════════════════
+         RELEVÉ D'ÉCHÉANCES CLIENT — balance âgée
+         Source : LAROV_Template_Releve_échéances par clients.xlsx
+         Imprimable depuis la fiche client (Contacts / Facturation › Clients)
+    ══════════════════════════════════════════════════════════════════ -->
+    <template id="report_customer_statement_larov_document">
+        <t t-call="web.external_layout">
+            <t t-set="partner" t-value="doc.commercial_partner_id"/>
+            <t t-set="lines" t-value="doc._larov_statement_lines()"/>
+            <t t-set="tot" t-value="doc._larov_statement_totals(lines)"/>
+            <t t-set="cur" t-value="doc.company_id.currency_id if doc.company_id else env.company.currency_id"/>
+            <t t-set="today" t-value="context_timestamp(datetime.datetime.now()).date()"/>
+            <t t-set="labels" t-value="{'paid': 'SOLDÉE', 'overdue': 'ÉCHUE', 'upcoming': 'À VENIR'}"/>
+            <div class="page larov-doc">
+                <t t-call="larov_centrale.larov_doc_header">
+                    <t t-set="title">RELEVÉ D'ÉCHÉANCES</t>
+                </t>
+                <table style="width:100%; border-collapse:collapse;">
+                    <tr>
+                        <td style="width:50%; vertical-align:top; padding-right:8px;">
+                            <t t-call="larov_centrale.larov_info_block">
+                                <t t-set="block_title">CLIENT</t>
+                                <t t-set="rows" t-value="[
+                                    ('Client', partner.name + ((partner.phone or partner.mobile) and ' &#183; ' + (partner.phone or partner.mobile) or '')),
+                                    ('Conditions de règlement', partner.property_payment_term_id.name),
+                                    ('Type de client', {'chr': 'CHR externe', 'group': 'Groupe', 'individual': 'Particulier', 'company': 'Entreprise (cadeaux)'}.get(partner.customer_segment, '')),
+                                ]"/>
+                            </t>
+                        </td>
+                        <td style="width:50%; vertical-align:top; padding-left:8px;">
+                            <t t-call="larov_centrale.larov_info_block">
+                                <t t-set="block_title">RELEVÉ</t>
+                                <t t-set="rows" t-value="[
+                                    ('N° compte contribuable', partner.vat),
+                                    ('Date d\'arrêté', today.strftime('%d/%m/%Y')),
+                                    ('Nombre de factures', len(lines)),
+                                ]"/>
+                            </t>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="larov-tracking" style="margin-bottom:8px;">
+                    <tr>
+                        <td><div class="larov-track-label">TOTAL DÛ</div><div class="larov-track-value" style="font-size:13px;"><t t-esc="tot['total_due']" t-options='{"widget": "monetary", "display_currency": cur}'/></div></td>
+                        <td><div class="larov-track-label">DONT ÉCHU</div><div class="larov-track-value" style="font-size:13px; color:#a33;"><t t-esc="tot['overdue']" t-options='{"widget": "monetary", "display_currency": cur}'/></div></td>
+                        <td><div class="larov-track-label">DONT À VENIR</div><div class="larov-track-value" style="font-size:13px;"><t t-esc="tot['upcoming']" t-options='{"widget": "monetary", "display_currency": cur}'/></div></td>
+                    </tr>
+                </table>
+
+                <table class="larov-lines">
+                    <thead>
+                        <tr>
+                            <th>N° facture</th>
+                            <th>Date facture</th>
+                            <th>Référence (BL)</th>
+                            <th>Échéance</th>
+                            <th class="num">Montant total</th>
+                            <th class="num">Montant payé</th>
+                            <th class="num">Reste à payer</th>
+                            <th class="num">Jours de retard</th>
+                            <th class="ctr">Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="lines" t-as="l">
+                            <tr t-att-class="l.status == 'overdue' and 'larov-neg' or ''">
+                                <td><t t-esc="l.move_name"/></td>
+                                <td><t t-esc="l.invoice_date and l.invoice_date.strftime('%d/%m/%Y')"/></td>
+                                <td><t t-esc="l.invoice_origin or ''"/></td>
+                                <td><t t-esc="l.invoice_date_due and l.invoice_date_due.strftime('%d/%m/%Y')"/></td>
+                                <td class="num"><t t-esc="l.amount_total" t-options='{"widget": "monetary", "display_currency": cur}'/></td>
+                                <td class="num"><t t-esc="l.amount_paid" t-options='{"widget": "monetary", "display_currency": cur}'/></td>
+                                <td class="num"><b><t t-esc="l.amount_residual" t-options='{"widget": "monetary", "display_currency": cur}'/></b></td>
+                                <td class="num"><t t-esc="l.days_overdue or ''"/></td>
+                                <td class="ctr"><t t-esc="labels.get(l.status, '')"/></td>
+                            </tr>
+                        </t>
+                        <tr class="larov-total">
+                            <td colspan="4" class="num">TOTAL RESTANT DÛ</td>
+                            <td class="num"><t t-esc="sum(lines.mapped('amount_total'))" t-options='{"widget": "monetary", "display_currency": cur}'/></td>
+                            <td class="num"><t t-esc="sum(lines.mapped('amount_paid'))" t-options='{"widget": "monetary", "display_currency": cur}'/></td>
+                            <td class="num"><t t-esc="tot['total_due']" t-options='{"widget": "monetary", "display_currency": cur}'/></td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="larov-section">BALANCE ÂGÉE — ancienneté des sommes dues</div>
+                <table class="larov-lines">
+                    <thead>
+                        <tr>
+                            <th class="num">Non échu</th><th class="num">1 à 30 jours</th><th class="num">31 à 60 jours</th>
+                            <th class="num">61 à 90 jours</th><th class="num">Plus de 90 jours</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <t t-foreach="['not_due', 'b1_30', 'b31_60', 'b61_90', 'b90']" t-as="b">
+                                <td class="num"><b><t t-esc="tot['buckets'][b]" t-options='{"widget": "monetary", "display_currency": cur}'/></b></td>
+                            </t>
+                        </tr>
+                        <tr>
+                            <t t-foreach="['not_due', 'b1_30', 'b31_60', 'b61_90', 'b90']" t-as="b">
+                                <td class="num" style="color:#555;"><t t-esc="'{:.0f} %'.format(tot['bucket_pct'][b])"/></td>
+                            </t>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table class="larov-tracking" style="margin-top:10px;">
+                    <tr>
+                        <td style="width:70%; background:#fff5e5;"><div class="larov-track-label">MONTANT À RÉGLER IMMÉDIATEMENT</div></td>
+                        <td style="width:30%; background:#fff5e5; text-align:right;"><div class="larov-track-value" style="font-size:14px; color:#a33;"><t t-esc="tot['overdue']" t-options='{"widget": "monetary", "display_currency": cur}'/></div></td>
+                    </tr>
+                </table>
+
+                <div class="larov-section">RÈGLEMENT</div>
+                <t t-set="bank" t-value="(doc.company_id or env.company).partner_id.bank_ids[:1]"/>
+                <div style="padding: 4px 6px; line-height:1.6;">
+                    Par virement bancaire &#183; Titulaire : <b><t t-esc="(doc.company_id or env.company).name"/></b>
+                    <t t-if="bank"> &#183; IBAN : <b><t t-esc="bank.acc_number"/></b><t t-if="bank.bank_id"> &#183; Banque : <b><t t-esc="bank.bank_id.name"/></b></t></t>
+                    <t t-else=""> &#183; IBAN : .................................... &#183; Banque : ....................</t><br/>
+                    Merci de rappeler le numéro de facture sur votre ordre de virement.
+                </div>
+                <p style="margin-top:10px;">Nous vous remercions de votre confiance et restons à votre disposition pour toute question relative à ce relevé.</p>
+                <p style="text-align:right; font-weight:700; margin-top:16px;">LA DIRECTION</p>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_customer_statement_larov">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="larov_centrale.report_customer_statement_larov_document"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_customer_statement_larov" model="ir.actions.report">
+        <field name="name">Relevé d'échéances (LAROV)</field>
+        <field name="model">res.partner</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">larov_centrale.report_customer_statement_larov</field>
+        <field name="report_file">larov_centrale.report_customer_statement_larov</field>
+        <field name="print_report_name">'Releve-%s' % (object.name or '').replace('/', '-')</field>
+        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="base.paperformat_euro"/>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         ENCOURS CLIENTS — tableau (impression depuis la liste, sélection)
+         Source : LAROV_Template_Encours_Clients.xlsx
+    ══════════════════════════════════════════════════════════════════ -->
+    <template id="report_customer_outstanding_larov">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <t t-set="cur" t-value="env.company.currency_id"/>
+                <t t-set="today" t-value="context_timestamp(datetime.datetime.now()).date()"/>
+                <t t-set="labels" t-value="{'paid': 'SOLDÉE', 'overdue': 'ÉCHUE', 'upcoming': 'À VENIR'}"/>
+                <t t-set="levels" t-value="{'high': 'ÉLEVÉ', 'medium': 'MOYEN', 'low': 'FAIBLE', 'none': '—'}"/>
+                <t t-set="seg" t-value="{'chr': 'CHR externe', 'group': 'Groupe', 'individual': 'Particuliers', 'company': 'Entreprises'}"/>
+                <t t-set="lines" t-value="docs.sorted(key=lambda l: (l.partner_id.name or '', l.invoice_date or today))"/>
+                <div class="page larov-doc" style="font-size: 9px;">
+                    <t t-call="larov_centrale.larov_doc_header">
+                        <t t-set="title">ENCOURS CLIENTS — au <t t-esc="today.strftime('%d/%m/%Y')"/></t>
+                        <t t-set="subtitle"><t t-esc="len(lines)"/> facture(s)</t>
+                    </t>
+                    <table class="larov-tracking" style="margin-bottom:8px;">
+                        <tr>
+                            <td><div class="larov-track-label">TOTAL ENCOURS</div><div class="larov-track-value" style="font-size:12px;"><t t-esc="sum(lines.mapped('amount_residual'))" t-options='{"widget": "monetary", "display_currency": cur}'/></div></td>
+                            <td><div class="larov-track-label">DONT ÉCHU</div><div class="larov-track-value" style="font-size:12px; color:#a33;"><t t-esc="sum(l.amount_residual for l in lines if l.status == 'overdue')" t-options='{"widget": "monetary", "display_currency": cur}'/></div></td>
+                            <td><div class="larov-track-label">DONT CHR EXTERNE</div><div class="larov-track-value" style="font-size:12px;"><t t-esc="sum(l.amount_residual for l in lines if l.customer_segment == 'chr')" t-options='{"widget": "monetary", "display_currency": cur}'/></div></td>
+                            <td><div class="larov-track-label">DONT GROUPE</div><div class="larov-track-value" style="font-size:12px;"><t t-esc="sum(l.amount_residual for l in lines if l.customer_segment == 'group')" t-options='{"widget": "monetary", "display_currency": cur}'/></div></td>
+                        </tr>
+                    </table>
+                    <table class="larov-lines" style="font-size: 8.5px;">
+                        <thead>
+                            <tr>
+                                <th>Client</th><th>Type</th><th>Conditions</th><th>Date facture</th><th>N° facture</th>
+                                <th class="num">Montant facturé</th><th class="num">Déjà réglé</th><th class="num">Reste à payer</th>
+                                <th>Échéance</th><th class="num">Retard (j)</th><th class="ctr">Statut</th><th class="ctr">Niveau</th><th class="ctr">À relancer ?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="lines" t-as="l">
+                                <tr t-att-class="l.to_remind and 'larov-warning' or (l.status == 'overdue' and 'larov-neg' or '')">
+                                    <td><t t-esc="l.partner_id.name"/></td>
+                                    <td><t t-esc="seg.get(l.customer_segment, '')"/></td>
+                                    <td><t t-esc="l.payment_term_id.name or ''"/></td>
+                                    <td><t t-esc="l.invoice_date and l.invoice_date.strftime('%d/%m/%Y')"/></td>
+                                    <td><t t-esc="l.move_name"/></td>
+                                    <td class="num"><t t-esc="l.amount_total" t-options='{"widget": "monetary", "display_currency": cur}'/></td>
+                                    <td class="num"><t t-esc="l.amount_paid" t-options='{"widget": "monetary", "display_currency": cur}'/></td>
+                                    <td class="num"><b><t t-esc="l.amount_residual" t-options='{"widget": "monetary", "display_currency": cur}'/></b></td>
+                                    <td><t t-esc="l.invoice_date_due and l.invoice_date_due.strftime('%d/%m/%Y')"/></td>
+                                    <td class="num"><t t-esc="l.days_overdue or ''"/></td>
+                                    <td class="ctr"><t t-esc="labels.get(l.status, '')"/></td>
+                                    <td class="ctr"><t t-esc="levels.get(l.risk_level, '')"/></td>
+                                    <td class="ctr"><t t-esc="l.to_remind and 'OUI' or ''"/></td>
+                                </tr>
+                            </t>
+                            <tr class="larov-total">
+                                <td colspan="5">TOTAL</td>
+                                <td class="num"><t t-esc="sum(lines.mapped('amount_total'))" t-options='{"widget": "monetary", "display_currency": cur}'/></td>
+                                <td class="num"><t t-esc="sum(lines.mapped('amount_paid'))" t-options='{"widget": "monetary", "display_currency": cur}'/></td>
+                                <td class="num"><t t-esc="sum(lines.mapped('amount_residual'))" t-options='{"widget": "monetary", "display_currency": cur}'/></td>
+                                <td colspan="5"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="larov-footnote">
+                        Niveau : ÉLEVÉ ≥ 2 000 000, MOYEN ≥ 500 000, FAIBLE &gt; 0 (seuils paramétrables).
+                        À relancer = CHR externe, échue, reste à payer ≥ seuil moyen.
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_customer_outstanding_larov" model="ir.actions.report">
+        <field name="name">Encours clients (LAROV)</field>
+        <field name="model">larov.customer.outstanding</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">larov_centrale.report_customer_outstanding_larov</field>
+        <field name="report_file">larov_centrale.report_customer_outstanding_larov</field>
+        <field name="print_report_name">'Encours_clients'</field>
+        <field name="binding_model_id" ref="model_larov_customer_outstanding"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_larov_landscape"/>
+    </record>
+</odoo>

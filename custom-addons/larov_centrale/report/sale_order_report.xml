@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Lignes communes Bon de commande client / Proforma -->
+    <template id="larov_sale_lines_table">
+        <t t-set="lines" t-value="doc.order_line.filtered(lambda l: not l.display_type)"/>
+        <table class="larov-lines">
+            <thead>
+                <tr>
+                    <th>Réf.</th>
+                    <th>Désignation</th>
+                    <th>Région</th>
+                    <th>Couleur</th>
+                    <th class="ctr">Mill.</th>
+                    <th class="num">Qté</th>
+                    <th class="num">P.U. TTC</th>
+                    <th class="num">Remise %</th>
+                    <th class="num">Montant TTC</th>
+                    <t t-if="show_stock">
+                        <th class="num">Stock dispo</th>
+                        <th class="ctr">Dispo ?</th>
+                    </t>
+                </tr>
+            </thead>
+            <tbody>
+                <t t-foreach="lines" t-as="line">
+                    <tr t-att-class="(show_stock and not line.is_available) and 'larov-warning' or ''">
+                        <td><t t-esc="line.product_id.default_code or ''"/></td>
+                        <td><t t-esc="line.product_id.product_tmpl_id._get_larov_appellation()"/></td>
+                        <td><t t-esc="line.wine_region_id.name or ''"/></td>
+                        <td><t t-esc="line.product_id.wine_color_display"/></td>
+                        <td class="ctr"><t t-esc="line.vintage_display"/></td>
+                        <td class="num"><t t-esc="'{:,.0f}'.format(line.product_uom_qty).replace(',', ' ')"/></td>
+                        <td class="num"><t t-esc="line.price_unit_ttc" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                        <td class="num"><t t-esc="line.discount and '{:g} %'.format(line.discount) or ''"/></td>
+                        <td class="num"><t t-esc="line.price_total" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                        <t t-if="show_stock">
+                            <td class="num"><t t-esc="line.product_id.is_storable and '{:,.0f}'.format(line.qty_available_wh).replace(',', ' ') or ''"/></td>
+                            <td class="ctr"><t t-esc="line.availability_label"/></td>
+                        </t>
+                    </tr>
+                </t>
+                <tr class="larov-total">
+                    <td colspan="5" class="num">TOTAL</td>
+                    <td class="num"><t t-esc="'{:,.0f}'.format(sum(lines.mapped('product_uom_qty'))).replace(',', ' ')"/></td>
+                    <td colspan="2"></td>
+                    <td class="num"><t t-esc="doc.amount_total" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                    <td t-if="show_stock" colspan="2"></td>
+                </tr>
+                <tr>
+                    <td t-att-colspan="show_stock and 6 or 5" style="border:none; color:#555;">
+                        Nombre de bouteilles : <b><t t-esc="'{:,.0f}'.format(doc.total_bottles).replace(',', ' ')"/></b>
+                        &#160;&#160;&#183;&#160;&#160;
+                        Remise accordée : <b><t t-esc="doc.total_discount_amount" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></b>
+                    </td>
+                    <td colspan="2" style="border:none; text-align:right; color:#555;">dont Total HT</td>
+                    <td class="num" style="border:none; font-weight:600;"><t t-esc="doc.amount_untaxed" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                    <td t-if="show_stock" colspan="2" style="border:none;"></td>
+                </tr>
+                <tr t-if="show_tax">
+                    <td t-att-colspan="show_stock and 6 or 5" style="border:none;"></td>
+                    <td colspan="2" style="border:none; text-align:right; color:#555;">dont TVA</td>
+                    <td class="num" style="border:none; font-weight:600;"><t t-esc="doc.amount_tax" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                    <td t-if="show_stock" colspan="2" style="border:none;"></td>
+                </tr>
+            </tbody>
+        </table>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         BON DE COMMANDE CLIENT — format LAROV
+         Source : LAROV_Template_Commande_Client.xlsx
+    ══════════════════════════════════════════════════════════════════ -->
+    <template id="report_sale_order_larov_document">
+        <t t-call="web.external_layout">
+            <t t-set="doc" t-value="doc.with_context(lang=doc.partner_id.lang)"/>
+            <t t-set="ship" t-value="doc.partner_shipping_id"/>
+            <div class="page larov-doc">
+                <t t-call="larov_centrale.larov_doc_header">
+                    <t t-set="title">BON DE COMMANDE CLIENT</t>
+                    <t t-set="subtitle" t-value="doc.state in ('draft', 'sent') and 'DEVIS — non confirmé' or ''"/>
+                </t>
+
+                <table style="width:100%; border-collapse:collapse;">
+                    <tr>
+                        <td style="width:50%; vertical-align:top; padding-right:8px;">
+                            <t t-call="larov_centrale.larov_info_block">
+                                <t t-set="block_title">CLIENT</t>
+                                <t t-set="rows" t-value="[
+                                    ('Client', doc.partner_id.commercial_partner_id.name),
+                                    ('Contact / téléphone', ' &#183; '.join([v for v in [doc.partner_id.name if doc.partner_id != doc.partner_id.commercial_partner_id else '', doc.partner_id.phone or doc.partner_id.mobile] if v])),
+                                    ('Adresse de livraison', ', '.join([v for v in [ship.street, ship.street2, ship.city] if v])),
+                                    ('N° compte contribuable', doc.partner_id.commercial_partner_id.vat),
+                                    ('Canal de réception', doc.reception_channel_label),
+                                ]"/>
+                            </t>
+                        </td>
+                        <td style="width:50%; vertical-align:top; padding-left:8px;">
+                            <t t-call="larov_centrale.larov_info_block">
+                                <t t-set="block_title">COMMANDE</t>
+                                <t t-set="rows" t-value="[
+                                    ('N° de commande', doc.name),
+                                    ('Date de commande', doc.date_order and doc.date_order.strftime('%d/%m/%Y')),
+                                    ('Livraison souhaitée', doc.commitment_date and doc.commitment_date.strftime('%d/%m/%Y')),
+                                    ('Conditions de règlement', doc.payment_term_id.name),
+                                    ('Pris par', doc.user_id.name),
+                                ]"/>
+                            </t>
+                        </td>
+                    </tr>
+                </table>
+
+                <t t-call="larov_centrale.larov_sale_lines_table">
+                    <t t-set="show_stock" t-value="True"/>
+                    <t t-set="show_tax" t-value="False"/>
+                </t>
+
+                <div t-if="doc.all_lines_available" class="larov-note-ok">
+                    ✓ Toutes les références sont disponibles en stock — commande livrable en totalité.
+                </div>
+                <div t-else="" class="larov-note-warn">
+                    ⚠ CERTAINES RÉFÉRENCES SONT EN RUPTURE — prévenir le client et proposer une substitution.
+                </div>
+
+                <div class="larov-section">VALIDATION</div>
+                <t t-call="larov_centrale.larov_signatures">
+                    <t t-set="signatures" t-value="[
+                        ('COMMANDE PRISE PAR', doc.user_id.name),
+                        ('VALIDÉE POUR SORTIE DE STOCK', ''),
+                        ('CLIENT — bon pour commande', '', 'Cachet et signature :'),
+                    ]"/>
+                </t>
+
+                <div class="larov-footnote">
+                    Ce bon vaut engagement de commande. Aucune sortie de stock n'est effectuée sans validation.
+                    Les prix s'entendent TTC, marchandise rendue Abidjan.
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_sale_order_larov">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="larov_centrale.report_sale_order_larov_document"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_sale_order_larov" model="ir.actions.report">
+        <field name="name">Bon de commande client (LAROV)</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">larov_centrale.report_sale_order_larov</field>
+        <field name="report_file">larov_centrale.report_sale_order_larov</field>
+        <field name="print_report_name">'CDE-%s' % (object.name or '').replace('/', '-')</field>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="base.paperformat_euro"/>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         PROFORMA — format LAROV
+         Source : LAROV_Template_Proforma.xlsx
+    ══════════════════════════════════════════════════════════════════ -->
+    <template id="report_proforma_larov_document">
+        <t t-call="web.external_layout">
+            <t t-set="doc" t-value="doc.with_context(lang=doc.partner_id.lang)"/>
+            <t t-set="bank" t-value="doc.company_id.partner_id.bank_ids[:1]"/>
+            <div class="page larov-doc">
+                <t t-call="larov_centrale.larov_doc_header">
+                    <t t-set="title">FACTURE PROFORMA</t>
+                </t>
+
+                <table style="width:100%; border-collapse:collapse;">
+                    <tr>
+                        <td style="width:50%; vertical-align:top; padding-right:8px;">
+                            <t t-call="larov_centrale.larov_info_block">
+                                <t t-set="block_title">CLIENT</t>
+                                <t t-set="rows" t-value="[
+                                    ('Nom / Raison sociale', doc.partner_id.commercial_partner_id.name),
+                                    ('Contact', ' &#183; '.join([v for v in [doc.partner_id.name if doc.partner_id != doc.partner_id.commercial_partner_id else '', doc.partner_id.phone or doc.partner_id.mobile, doc.partner_id.email] if v])),
+                                    ('N° compte contribuable', doc.partner_id.commercial_partner_id.vat),
+                                    ('Adresse', ', '.join([v for v in [doc.partner_id.street, doc.partner_id.street2, doc.partner_id.city] if v])),
+                                ]"/>
+                            </t>
+                        </td>
+                        <td style="width:50%; vertical-align:top; padding-left:8px;">
+                            <t t-call="larov_centrale.larov_info_block">
+                                <t t-set="block_title">DOCUMENT</t>
+                                <t t-set="rows" t-value="[
+                                    ('N° proforma', 'PRO-' + doc.name),
+                                    ('Date', doc.date_order and doc.date_order.strftime('%d/%m/%Y')),
+                                    ('Validité', '%s jours' % doc.proforma_validity_days),
+                                    ('Conditions de règlement', doc.payment_term_id.name),
+                                ]"/>
+                            </t>
+                        </td>
+                    </tr>
+                </table>
+
+                <t t-call="larov_centrale.larov_sale_lines_table">
+                    <t t-set="show_stock" t-value="False"/>
+                    <t t-set="show_tax" t-value="True"/>
+                </t>
+
+                <div class="larov-section">CONDITIONS</div>
+                <div style="padding: 4px 6px; line-height: 1.6;">
+                    &#183; Cette facture proforma est valable <t t-esc="doc.proforma_validity_days"/> jours à compter de sa date d'émission.<br/>
+                    &#183; Les prix s'entendent toutes taxes comprises, marchandise rendue Abidjan.<br/>
+                    &#183; Toute commande vaut acceptation des présentes conditions.<br/>
+                    &#183; Règlement par virement bancaire
+                    <t t-if="bank"> — IBAN : <b><t t-esc="bank.acc_number"/></b><t t-if="bank.bank_id"> &#183; Banque : <b><t t-esc="bank.bank_id.name"/></b></t></t>
+                    <t t-else=""> — IBAN : .................................... &#183; Banque : ....................</t>
+                    <t t-if="doc.note"><br/><span t-field="doc.note"/></t>
+                </div>
+
+                <t t-call="larov_centrale.larov_signatures">
+                    <t t-set="signatures" t-value="[
+                        ('BON POUR ACCORD — le client', '', 'Signature et cachet :'),
+                        (doc.company_id.name.upper(), 'Établi par : %s' % (doc.user_id.name or '')),
+                    ]"/>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_proforma_larov">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="larov_centrale.report_proforma_larov_document"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_proforma_larov" model="ir.actions.report">
+        <field name="name">Proforma (LAROV)</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">larov_centrale.report_proforma_larov</field>
+        <field name="report_file">larov_centrale.report_proforma_larov</field>
+        <field name="print_report_name">'PRO-%s' % (object.name or '').replace('/', '-')</field>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="base.paperformat_euro"/>
+    </record>
+</odoo>
