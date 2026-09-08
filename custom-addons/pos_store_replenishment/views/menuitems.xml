@@ -114,7 +114,7 @@
 
     <menuitem
         id="menu_store_replenishment_dashboard_stock_principal"
-        name="STOCK PRINCIPAL"
+        name="MAISON LAROV"
         parent="menu_store_replenishment_dashboard"
         action="pos_store_replenishment.action_store_replenishment_dashboard_stock_principal"
         sequence="20"
@@ -122,26 +122,15 @@
 
     <menuitem
         id="menu_store_replenishment_dashboard_yop"
-        name="BCG YOP"
+        name="Boutique Zino"
         parent="menu_store_replenishment_dashboard"
         action="pos_store_replenishment.action_store_replenishment_dashboard_yop"
         sequence="30"
         groups="point_of_sale.group_pos_manager"/>
 
-    <menuitem
-        id="menu_store_replenishment_dashboard_dokui"
-        name="BCG DOKUI"
-        parent="menu_store_replenishment_dashboard"
-        action="pos_store_replenishment.action_store_replenishment_dashboard_dokui"
-        sequence="40"
-        groups="point_of_sale.group_pos_manager"/>
-
-    <menuitem
-        id="menu_store_replenishment_dashboard_angre"
-        name="BCG ANGRE"
-        parent="menu_store_replenishment_dashboard"
-        action="pos_store_replenishment.action_store_replenishment_dashboard_angre"
-        sequence="50"
-        groups="point_of_sale.group_pos_manager"/>
+    <!-- BCG DOKUI / BCG ANGRE retirés : ids d'entrepôts hérités d'une
+         installation précédente (module réutilisé), ne correspondant à
+         aucun établissement LAROV. À réintroduire (sous le bon nom) le
+         jour où un 3e ou 4e établissement est effectivement créé. -->
 
 </odoo>

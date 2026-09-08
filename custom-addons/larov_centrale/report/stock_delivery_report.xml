@@ -24,7 +24,7 @@
                                 <t t-set="rows" t-value="[
                                     ('Client', ship.commercial_partner_id.name),
                                     ('Adresse de livraison', ', '.join([v for v in [ship.street, ship.street2, ship.city] if v])),
-                                    ('Contact sur place', doc.site_contact or ' &#183; '.join([v for v in [ship.name if ship != ship.commercial_partner_id else '', ship.phone or ship.mobile] if v])),
+                                    ('Contact sur place', doc.site_contact or ' &#183; '.join([v for v in [ship.name if ship != ship.commercial_partner_id else '', ship.phone] if v])),
                                     ('Dépôt expéditeur', doc.location_id.warehouse_id.name or doc.location_id.display_name),
                                 ]"/>
                             </t>

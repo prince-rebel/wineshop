@@ -193,7 +193,7 @@
     ══════════════════════════════════════════════════════════ -->
 
     <record id="action_store_replenishment_dashboard_stock_principal" model="ir.actions.act_window">
-        <field name="name">Historique — STOCK PRINCIPAL</field>
+        <field name="name">Historique — MAISON LAROV</field>
         <field name="res_model">stock.picking</field>
         <field name="view_mode">list,form,graph,pivot</field>
         <field name="domain">[('is_store_replenishment', '=', True), '|', ('dest_store_id', '=', 1), ('src_store_id', '=', 1)]</field>
@@ -230,7 +230,7 @@
     </record>
 
     <record id="action_store_replenishment_dashboard_yop" model="ir.actions.act_window">
-        <field name="name">Historique — BCG YOP</field>
+        <field name="name">Historique — Boutique Zino</field>
         <field name="res_model">stock.picking</field>
         <field name="view_mode">list,form,graph,pivot</field>
         <field name="domain">[('is_store_replenishment', '=', True), '|', ('dest_store_id', '=', 2), ('src_store_id', '=', 2)]</field>
@@ -266,78 +266,7 @@
         <field name="act_window_id" ref="action_store_replenishment_dashboard_yop"/>
     </record>
 
-    <record id="action_store_replenishment_dashboard_dokui" model="ir.actions.act_window">
-        <field name="name">Historique — BCG DOKUI</field>
-        <field name="res_model">stock.picking</field>
-        <field name="view_mode">list,form,graph,pivot</field>
-        <field name="domain">[('is_store_replenishment', '=', True), '|', ('dest_store_id', '=', 3), ('src_store_id', '=', 3)]</field>
-        <field name="context">{'focus_warehouse_id': 3, 'group_by': ['validation_group']}</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Aucun transfert encore enregistré pour ce magasin
-            </p>
-        </field>
-    </record>
-    <record id="action_store_replenishment_dashboard_dokui_view_list" model="ir.actions.act_window.view">
-        <field name="sequence" eval="1"/>
-        <field name="view_mode">list</field>
-        <field name="view_id" ref="view_store_replenishment_dashboard_list"/>
-        <field name="act_window_id" ref="action_store_replenishment_dashboard_dokui"/>
-    </record>
-    <record id="action_store_replenishment_dashboard_dokui_view_form" model="ir.actions.act_window.view">
-        <field name="sequence" eval="2"/>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="view_store_replenishment_dashboard_form"/>
-        <field name="act_window_id" ref="action_store_replenishment_dashboard_dokui"/>
-    </record>
-    <record id="action_store_replenishment_dashboard_dokui_view_graph" model="ir.actions.act_window.view">
-        <field name="sequence" eval="3"/>
-        <field name="view_mode">graph</field>
-        <field name="view_id" ref="view_store_replenishment_dashboard_graph"/>
-        <field name="act_window_id" ref="action_store_replenishment_dashboard_dokui"/>
-    </record>
-    <record id="action_store_replenishment_dashboard_dokui_view_pivot" model="ir.actions.act_window.view">
-        <field name="sequence" eval="4"/>
-        <field name="view_mode">pivot</field>
-        <field name="view_id" ref="view_store_replenishment_dashboard_pivot"/>
-        <field name="act_window_id" ref="action_store_replenishment_dashboard_dokui"/>
-    </record>
-
-    <record id="action_store_replenishment_dashboard_angre" model="ir.actions.act_window">
-        <field name="name">Historique — BCG ANGRE</field>
-        <field name="res_model">stock.picking</field>
-        <field name="view_mode">list,form,graph,pivot</field>
-        <field name="domain">[('is_store_replenishment', '=', True), '|', ('dest_store_id', '=', 4), ('src_store_id', '=', 4)]</field>
-        <field name="context">{'focus_warehouse_id': 4, 'group_by': ['validation_group']}</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Aucun transfert encore enregistré pour ce magasin
-            </p>
-        </field>
-    </record>
-    <record id="action_store_replenishment_dashboard_angre_view_list" model="ir.actions.act_window.view">
-        <field name="sequence" eval="1"/>
-        <field name="view_mode">list</field>
-        <field name="view_id" ref="view_store_replenishment_dashboard_list"/>
-        <field name="act_window_id" ref="action_store_replenishment_dashboard_angre"/>
-    </record>
-    <record id="action_store_replenishment_dashboard_angre_view_form" model="ir.actions.act_window.view">
-        <field name="sequence" eval="2"/>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="view_store_replenishment_dashboard_form"/>
-        <field name="act_window_id" ref="action_store_replenishment_dashboard_angre"/>
-    </record>
-    <record id="action_store_replenishment_dashboard_angre_view_graph" model="ir.actions.act_window.view">
-        <field name="sequence" eval="3"/>
-        <field name="view_mode">graph</field>
-        <field name="view_id" ref="view_store_replenishment_dashboard_graph"/>
-        <field name="act_window_id" ref="action_store_replenishment_dashboard_angre"/>
-    </record>
-    <record id="action_store_replenishment_dashboard_angre_view_pivot" model="ir.actions.act_window.view">
-        <field name="sequence" eval="4"/>
-        <field name="view_mode">pivot</field>
-        <field name="view_id" ref="view_store_replenishment_dashboard_pivot"/>
-        <field name="act_window_id" ref="action_store_replenishment_dashboard_angre"/>
-    </record>
+    <!-- BCG DOKUI / BCG ANGRE (ids 3/4) retirés : entrepôts hérités d'une
+         installation précédente, inexistants dans la base LAROV. -->
 
 </odoo>

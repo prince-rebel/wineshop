@@ -23,7 +23,7 @@
                             <t t-call="larov_centrale.larov_info_block">
                                 <t t-set="block_title">CLIENT</t>
                                 <t t-set="rows" t-value="[
-                                    ('Client', partner.name + ((partner.phone or partner.mobile) and ' &#183; ' + (partner.phone or partner.mobile) or '')),
+                                    ('Client', partner.name + (partner.phone and ' &#183; ' + partner.phone or '')),
                                     ('Conditions de règlement', partner.property_payment_term_id.name),
                                     ('Type de client', {'chr': 'CHR externe', 'group': 'Groupe', 'individual': 'Particulier', 'company': 'Entreprise (cadeaux)'}.get(partner.customer_segment, '')),
                                 ]"/>

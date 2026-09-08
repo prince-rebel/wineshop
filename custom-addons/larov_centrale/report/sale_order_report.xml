@@ -87,7 +87,7 @@
                                 <t t-set="block_title">CLIENT</t>
                                 <t t-set="rows" t-value="[
                                     ('Client', doc.partner_id.commercial_partner_id.name),
-                                    ('Contact / téléphone', ' &#183; '.join([v for v in [doc.partner_id.name if doc.partner_id != doc.partner_id.commercial_partner_id else '', doc.partner_id.phone or doc.partner_id.mobile] if v])),
+                                    ('Contact / téléphone', ' &#183; '.join([v for v in [doc.partner_id.name if doc.partner_id != doc.partner_id.commercial_partner_id else '', doc.partner_id.phone] if v])),
                                     ('Adresse de livraison', ', '.join([v for v in [ship.street, ship.street2, ship.city] if v])),
                                     ('N° compte contribuable', doc.partner_id.commercial_partner_id.vat),
                                     ('Canal de réception', doc.reception_channel_label),
@@ -178,7 +178,7 @@
                                 <t t-set="block_title">CLIENT</t>
                                 <t t-set="rows" t-value="[
                                     ('Nom / Raison sociale', doc.partner_id.commercial_partner_id.name),
-                                    ('Contact', ' &#183; '.join([v for v in [doc.partner_id.name if doc.partner_id != doc.partner_id.commercial_partner_id else '', doc.partner_id.phone or doc.partner_id.mobile, doc.partner_id.email] if v])),
+                                    ('Contact', ' &#183; '.join([v for v in [doc.partner_id.name if doc.partner_id != doc.partner_id.commercial_partner_id else '', doc.partner_id.phone, doc.partner_id.email] if v])),
                                     ('N° compte contribuable', doc.partner_id.commercial_partner_id.vat),
                                     ('Adresse', ', '.join([v for v in [doc.partner_id.street, doc.partner_id.street2, doc.partner_id.city] if v])),
                                 ]"/>
